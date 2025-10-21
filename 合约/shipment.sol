@@ -62,13 +62,13 @@ contract shipment{
     }
     //物流信息录入
     function addShipment(uint _id,uint _carrier,string _from,string _to)public{
-        carriers[_carrier].shipments.push(shipments.length);
+        carriers[_carrier-1].shipments.push(shipments.length);
         Shipment memory s =Shipment(shipments.length+1,_id,_carrier,_from,_to,"待揽收",block.timestamp,block.timestamp);
         shipments.push(s);
     }
     //物流信息更新
     function updateShipment(uint carrier_id,uint shipment_id,string _status)public{
-        if(keccak256((abi.encodePacked(shipments[shipment_id-1].carrier)))==keccak256((abi.encodePacked(carriers[carrier_id-1].name)))){
+        if (shipments[shipment_id-1].carrier==carrier_id){
             shipments[shipment_id-1].status =_status;
             shipments[shipment_id-1].updateTime = block.timestamp;
         }
