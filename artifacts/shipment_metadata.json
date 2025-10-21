@@ -1,0 +1,256 @@
+{
+	"compiler": {
+		"version": "0.4.26+commit.4563c3fc"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"constant": false,
+				"inputs": [
+					{
+						"name": "_name",
+						"type": "string"
+					},
+					{
+						"name": "_passwd",
+						"type": "string"
+					}
+				],
+				"name": "addUser",
+				"outputs": [],
+				"payable": false,
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"constant": true,
+				"inputs": [
+					{
+						"name": "_id",
+						"type": "uint256"
+					}
+				],
+				"name": "getShipment",
+				"outputs": [
+					{
+						"name": "",
+						"type": "uint256"
+					},
+					{
+						"name": "",
+						"type": "uint256"
+					},
+					{
+						"name": "",
+						"type": "uint256"
+					},
+					{
+						"name": "",
+						"type": "string"
+					},
+					{
+						"name": "",
+						"type": "string"
+					},
+					{
+						"name": "",
+						"type": "string"
+					},
+					{
+						"name": "",
+						"type": "uint256"
+					},
+					{
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"payable": false,
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"constant": false,
+				"inputs": [
+					{
+						"name": "_name",
+						"type": "string"
+					},
+					{
+						"name": "_info",
+						"type": "string"
+					},
+					{
+						"name": "_passwd",
+						"type": "string"
+					}
+				],
+				"name": "addCarrier",
+				"outputs": [],
+				"payable": false,
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"constant": true,
+				"inputs": [
+					{
+						"name": "_id",
+						"type": "uint256"
+					},
+					{
+						"name": "_passwd",
+						"type": "string"
+					}
+				],
+				"name": "checkUser",
+				"outputs": [
+					{
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"payable": false,
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"constant": true,
+				"inputs": [
+					{
+						"name": "_id",
+						"type": "uint256"
+					}
+				],
+				"name": "getShipmentsByCarrier",
+				"outputs": [
+					{
+						"name": "",
+						"type": "uint256[]"
+					}
+				],
+				"payable": false,
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"constant": true,
+				"inputs": [
+					{
+						"name": "_id",
+						"type": "uint256"
+					}
+				],
+				"name": "getStatus",
+				"outputs": [
+					{
+						"name": "",
+						"type": "string"
+					}
+				],
+				"payable": false,
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"constant": false,
+				"inputs": [
+					{
+						"name": "_id",
+						"type": "uint256"
+					},
+					{
+						"name": "_carrier",
+						"type": "uint256"
+					},
+					{
+						"name": "_from",
+						"type": "string"
+					},
+					{
+						"name": "_to",
+						"type": "string"
+					}
+				],
+				"name": "addShipment",
+				"outputs": [],
+				"payable": false,
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"constant": false,
+				"inputs": [
+					{
+						"name": "carrier_id",
+						"type": "uint256"
+					},
+					{
+						"name": "shipment_id",
+						"type": "uint256"
+					},
+					{
+						"name": "_status",
+						"type": "string"
+					}
+				],
+				"name": "updateShipment",
+				"outputs": [],
+				"payable": false,
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"constant": true,
+				"inputs": [
+					{
+						"name": "_id",
+						"type": "uint256"
+					},
+					{
+						"name": "_passwd",
+						"type": "string"
+					}
+				],
+				"name": "checkCarrier",
+				"outputs": [
+					{
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"payable": false,
+				"stateMutability": "view",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"methods": {}
+		},
+		"userdoc": {
+			"methods": {}
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"合约/shipment.sol": "shipment"
+		},
+		"evmVersion": "byzantium",
+		"libraries": {},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"合约/shipment.sol": {
+			"keccak256": "0x997c20ffc04245ed3be71d2579b5773d9de5ed364b575831594a2e54deb021bd",
+			"urls": [
+				"bzzr://5f1e1c3156d72899ef0e7de45bf95828f57091d08daf10fd6be61d289125579b"
+			]
+		}
+	},
+	"version": 1
+}
