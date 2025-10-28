@@ -62,7 +62,7 @@ contract shipment{
     }
     //物流信息录入
     function addShipment(uint _id,uint _carrier,string _from,string _to)public{
-        carriers[_carrier-1].shipments.push(shipments.length);
+        carriers[_carrier-1].shipments.push(shipments.length+1);
         Shipment memory s =Shipment(shipments.length+1,_id,_carrier,_from,_to,"待揽收",block.timestamp,block.timestamp);
         shipments.push(s);
     }
