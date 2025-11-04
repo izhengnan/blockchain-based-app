@@ -4,6 +4,8 @@ org/example/demo/config/SystemConfig.java
  org.example.demo.config.SystemConfig
 org/example/demo/Application.java
  org.example.demo.Application
+org/example/demo/dto/CarrierDTO.java
+ org.example.demo.dto.CarrierDTO
 org/example/demo/config/ContractConfig.java
  org.example.demo.config.ContractConfig
 org/example/demo/model/bo/shipmentGetShipmentInputBO.java
