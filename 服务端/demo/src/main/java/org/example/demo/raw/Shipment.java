@@ -1,0 +1,298 @@
+package org.example.demo.raw;
+
+import java.math.BigInteger;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import org.fisco.bcos.sdk.abi.FunctionReturnDecoder;
+import org.fisco.bcos.sdk.abi.TypeReference;
+import org.fisco.bcos.sdk.abi.datatypes.Bool;
+import org.fisco.bcos.sdk.abi.datatypes.DynamicArray;
+import org.fisco.bcos.sdk.abi.datatypes.Function;
+import org.fisco.bcos.sdk.abi.datatypes.Type;
+import org.fisco.bcos.sdk.abi.datatypes.Utf8String;
+import org.fisco.bcos.sdk.abi.datatypes.generated.Uint256;
+import org.fisco.bcos.sdk.abi.datatypes.generated.tuples.generated.Tuple2;
+import org.fisco.bcos.sdk.abi.datatypes.generated.tuples.generated.Tuple3;
+import org.fisco.bcos.sdk.abi.datatypes.generated.tuples.generated.Tuple4;
+import org.fisco.bcos.sdk.abi.datatypes.generated.tuples.generated.Tuple8;
+import org.fisco.bcos.sdk.client.Client;
+import org.fisco.bcos.sdk.contract.Contract;
+import org.fisco.bcos.sdk.crypto.CryptoSuite;
+import org.fisco.bcos.sdk.crypto.keypair.CryptoKeyPair;
+import org.fisco.bcos.sdk.model.CryptoType;
+import org.fisco.bcos.sdk.model.TransactionReceipt;
+import org.fisco.bcos.sdk.model.callback.TransactionCallback;
+import org.fisco.bcos.sdk.transaction.model.exception.ContractException;
+
+@SuppressWarnings("unchecked")
+public class Shipment extends Contract {
+    public static final String[] BINARY_ARRAY = {"608060405234801561001057600080fd5b50611562806100206000396000f300608060405260043610610099576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff168063079eaf341461009e578063092b37401461014d5780633e92ecab146102ee57806346fe46f9146103e35780634de526511461046e5780635c622a0e146104f05780635df2d3681461059657806365d7b76614610659578063c64cb4ed146106d6575b600080fd5b3480156100aa57600080fd5b5061014b600480360381019080803590602001908201803590602001908080601f0160208091040260200160405190810160405280939291908181526020018383808284378201915050505050509192919290803590602001908201803590602001908080601f0160208091040260200160405190810160405280939291908181526020018383808284378201915050505050509192919290505050610761565b005b34801561015957600080fd5b5061017860048036038101908080359060200190929190505050610809565b60405180898152602001888152602001878152602001806020018060200180602001868152602001858152602001848103845289818151815260200191508051906020019080838360005b838110156101de5780820151818401526020810190506101c3565b50505050905090810190601f16801561020b5780820380516001836020036101000a031916815260200191505b50848103835288818151815260200191508051906020019080838360005b83811015610244578082015181840152602081019050610229565b50505050905090810190601f1680156102715780820380516001836020036101000a031916815260200191505b50848103825287818151815260200191508051906020019080838360005b838110156102aa57808201518184015260208101905061028f565b50505050905090810190601f1680156102d75780820380516001836020036101000a031916815260200191505b509b50505050505050505050505060405180910390f35b3480156102fa57600080fd5b506103e1600480360381019080803590602001908201803590602001908080601f0160208091040260200160405190810160405280939291908181526020018383808284378201915050505050509192919290803590602001908201803590602001908080601f0160208091040260200160405190810160405280939291908181526020018383808284378201915050505050509192919290803590602001908201803590602001908080601f0160208091040260200160405190810160405280939291908181526020018383808284378201915050505050509192919290505050610ab2565b005b3480156103ef57600080fd5b5061045460048036038101908080359060200190929190803590602001908201803590602001908080601f0160208091040260200160405190810160405280939291908181526020018383808284378201915050505050509192919290505050610bf2565b604051808215151515815260200191505060405180910390f35b34801561047a57600080fd5b5061049960048036038101908080359060200190929190505050610ddc565b6040518080602001828103825283818151815260200191508051906020019060200280838360005b838110156104dc5780820151818401526020810190506104c1565b505050509050019250505060405180910390f35b3480156104fc57600080fd5b5061051b60048036038101908080359060200190929190505050610e56565b6040518080602001828103825283818151815260200191508051906020019080838360005b8381101561055b578082015181840152602081019050610540565b50505050905090810190601f1680156105885780820380516001836020036101000a031916815260200191505b509250505060405180910390f35b3480156105a257600080fd5b506106576004803603810190808035906020019092919080359060200190929190803590602001908201803590602001908080601f0160208091040260200160405190810160405280939291908181526020018383808284378201915050505050509192919290803590602001908201803590602001908080601f0160208091040260200160405190810160405280939291908181526020018383808284378201915050505050509192919290505050610f1b565b005b34801561066557600080fd5b506106d46004803603810190808035906020019092919080359060200190929190803590602001908201803590602001908080601f01602080910402602001604051908101604052809392919081815260200183838082843782019150505050505091929192905050506110b2565b005b3480156106e257600080fd5b5061074760048036038101908080359060200190929190803590602001908201803590602001908080601f0160208091040260200160405190810160405280939291908181526020018383808284378201915050505050509192919290505050611143565b604051808215151515815260200191505060405180910390f35b61076961132c565b6060604051908101604052806001600080549050018152602001848152602001838152509050600081908060018154018082558091505090600182039060005260206000209060030201600090919290919091506000820151816000015560208201518160010190805190602001906107e392919061134e565b50604082015181600201908051906020019061080092919061134e565b50505050505050565b6000806000606080606060008061081e6113ce565b600260018b0381548110151561083057fe5b90600052602060002090600802016101006040519081016040529081600082015481526020016001820154815260200160028201548152602001600382018054600181600116156101000203166002900480601f0160208091040260200160405190810160405280929190818152602001828054600181600116156101000203166002900480156109025780601f106108d757610100808354040283529160200191610902565b820191906000526020600020905b8154815290600101906020018083116108e557829003601f168201915b50505050508152602001600482018054600181600116156101000203166002900480601f0160208091040260200160405190810160405280929190818152602001828054600181600116156101000203166002900480156109a45780601f10610979576101008083540402835291602001916109a4565b820191906000526020600020905b81548152906001019060200180831161098757829003601f168201915b50505050508152602001600582018054600181600116156101000203166002900480601f016020809104026020016040519081016040528092919081815260200182805460018160011615610100020316600290048015610a465780601f10610a1b57610100808354040283529160200191610a46565b820191906000526020600020905b815481529060010190602001808311610a2957829003601f168201915b50505050508152602001600682015481526020016007820154815250509050806000015181602001518260400151836060015184608001518560a001518660c001518760e001518494508393508292509850985098509850985098509850985050919395975091939597565b6000610abc611414565b60a0604051908101604052806001808054905001815260200186815260200185815260200184815260200183805480602002602001604051908101604052809291908181526020018280548015610b3257602002820191906000526020600020905b815481526020019060010190808311610b1e575b5050505050815250905060018190806001815401808255809150509060018203906000526020600020906005020160009091929091909150600082015181600001556020820151816001019080519060200190610b9092919061134e565b506040820151816002019080519060200190610bad92919061134e565b506060820151816003019080519060200190610bca92919061134e565b506080820151816004019080519060200190610be7929190611444565b505050505050505050565b6000816040516020018082805190602001908083835b602083101515610c2d5780518252602082019150602081019050602083039250610c08565b6001836020036101000a0380198251168184511680821785525050505050509050019150506040516020818303038152906040526040518082805190602001908083835b602083101515610c965780518252602082019150602081019050602083039250610c71565b6001836020036101000a038019825116818451168082178552505050505050905001915050604051809103902060001916600060018503815481101515610cd957fe5b90600052602060002090600302016002016040516020018082805460018160011615610100020316600290048015610d485780601f10610d26576101008083540402835291820191610d48565b820191906000526020600020905b815481529060010190602001808311610d34575b50509150506040516020818303038152906040526040518082805190602001908083835b602083101515610d915780518252602082019150602081019050602083039250610d6c565b6001836020036101000a0380198251168184511680821785525050505050509050019150506040518091039020600019161415610dd15760019050610dd6565b600090505b92915050565b60606001808303815481101515610def57fe5b9060005260206000209060050201600401805480602002602001604051908101604052809291908181526020018280548015610e4a57602002820191906000526020600020905b815481526020019060010190808311610e36575b50505050509050919050565b6060600260018303815481101515610e6a57fe5b90600052602060002090600802016005018054600181600116156101000203166002900480601f016020809104026020016040519081016040528092919081815260200182805460018160011615610100020316600290048015610f0f5780601f10610ee457610100808354040283529160200191610f0f565b820191906000526020600020905b815481529060010190602001808311610ef257829003601f168201915b50505050509050919050565b610f236113ce565b6001808503815481101515610f3457fe5b906000526020600020906005020160040160016002805490500190806001815401808255809150509060018203906000526020600020016000909192909190915055506101006040519081016040528060016002805490500181526020018681526020018581526020018481526020018381526020016040805190810160405280600981526020017fe5be85e68fbde694b600000000000000000000000000000000000000000000008152","50815260200142815260200142815250905060028190806001815401808255809150509060018203906000526020600020906008020160009091929091909150600082015181600001556020820151816001015560408201518160020155606082015181600301908051906020019061105992919061134e565b50608082015181600401908051906020019061107692919061134e565b5060a082015181600501908051906020019061109392919061134e565b5060c0820151816006015560e082015181600701555050505050505050565b826002600184038154811015156110c557fe5b906000526020600020906008020160020154141561113e57806002600184038154811015156110f057fe5b90600052602060002090600802016005019080519060200190611114929190611491565b504260026001840381548110151561112857fe5b9060005260206000209060080201600701819055505b505050565b6000816040516020018082805190602001908083835b60208310151561117e5780518252602082019150602081019050602083039250611159565b6001836020036101000a0380198251168184511680821785525050505050509050019150506040516020818303038152906040526040518082805190602001908083835b6020831015156111e757805182526020820191506020810190506020830392506111c2565b6001836020036101000a038019825116818451168082178552505050505050905001915050604051809103902060001916600180850381548110151561122957fe5b906000526020600020906005020160030160405160200180828054600181600116156101000203166002900480156112985780601f10611276576101008083540402835291820191611298565b820191906000526020600020905b815481529060010190602001808311611284575b50509150506040516020818303038152906040526040518082805190602001908083835b6020831015156112e157805182526020820191506020810190506020830392506112bc565b6001836020036101000a03801982511681845116808217855250505050505090500191505060405180910390206000191614156113215760019050611326565b600090505b92915050565b6060604051908101604052806000815260200160608152602001606081525090565b828054600181600116156101000203166002900490600052602060002090601f016020900481019282601f1061138f57805160ff19168380011785556113bd565b828001600101855582156113bd579182015b828111156113bc5782518255916020019190600101906113a1565b5b5090506113ca9190611511565b5090565b6101006040519081016040528060008152602001600081526020016000815260200160608152602001606081526020016060815260200160008152602001600081525090565b60a06040519081016040528060008152602001606081526020016060815260200160608152602001606081525090565b828054828255906000526020600020908101928215611480579160200282015b8281111561147f578251825591602001919060010190611464565b5b50905061148d9190611511565b5090565b828054600181600116156101000203166002900490600052602060002090601f016020900481019282601f106114d257805160ff1916838001178555611500565b82800160010185558215611500579182015b828111156114ff5782518255916020019190600101906114e4565b5b50905061150d9190611511565b5090565b61153391905b8082111561152f576000816000905550600101611517565b5090565b905600a165627a7a72305820867fd317ad0fed29c78b69153667a1e42198adee2043bca49836bc99750eb4d50029"};
+
+    public static final String BINARY = org.fisco.bcos.sdk.utils.StringUtils.joinAll("", BINARY_ARRAY);
+
+    public static final String[] SM_BINARY_ARRAY = {};
+
+    public static final String SM_BINARY = org.fisco.bcos.sdk.utils.StringUtils.joinAll("", SM_BINARY_ARRAY);
+
+    public static final String[] ABI_ARRAY = {"[{\"constant\":false,\"inputs\":[{\"name\":\"_name\",\"type\":\"string\"},{\"name\":\"_passwd\",\"type\":\"string\"}],\"name\":\"addUser\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"_id\",\"type\":\"uint256\"}],\"name\":\"getShipment\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"},{\"name\":\"\",\"type\":\"uint256\"},{\"name\":\"\",\"type\":\"uint256\"},{\"name\":\"\",\"type\":\"string\"},{\"name\":\"\",\"type\":\"string\"},{\"name\":\"\",\"type\":\"string\"},{\"name\":\"\",\"type\":\"uint256\"},{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"_name\",\"type\":\"string\"},{\"name\":\"_info\",\"type\":\"string\"},{\"name\":\"_passwd\",\"type\":\"string\"}],\"name\":\"addCarrier\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"_id\",\"type\":\"uint256\"},{\"name\":\"_passwd\",\"type\":\"string\"}],\"name\":\"checkUser\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"_id\",\"type\":\"uint256\"}],\"name\":\"getShipmentsByCarrier\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256[]\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"_id\",\"type\":\"uint256\"}],\"name\":\"getStatus\",\"outputs\":[{\"name\":\"\",\"type\":\"string\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"_id\",\"type\":\"uint256\"},{\"name\":\"_carrier\",\"type\":\"uint256\"},{\"name\":\"_from\",\"type\":\"string\"},{\"name\":\"_to\",\"type\":\"string\"}],\"name\":\"addShipment\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"carrier_id\",\"type\":\"uint256\"},{\"name\":\"shipment_id\",\"type\":\"uint256\"},{\"name\":\"_status\",\"type\":\"string\"}],\"name\":\"updateShipment\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"_id\",\"type\":\"uint256\"},{\"name\":\"_passwd\",\"type\":\"string\"}],\"name\":\"checkCarrier\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}]"};
+
+    public static final String ABI = org.fisco.bcos.sdk.utils.StringUtils.joinAll("", ABI_ARRAY);
+
+    public static final String FUNC_ADDUSER = "addUser";
+
+    public static final String FUNC_GETSHIPMENT = "getShipment";
+
+    public static final String FUNC_ADDCARRIER = "addCarrier";
+
+    public static final String FUNC_CHECKUSER = "checkUser";
+
+    public static final String FUNC_GETSHIPMENTSBYCARRIER = "getShipmentsByCarrier";
+
+    public static final String FUNC_GETSTATUS = "getStatus";
+
+    public static final String FUNC_ADDSHIPMENT = "addShipment";
+
+    public static final String FUNC_UPDATESHIPMENT = "updateShipment";
+
+    public static final String FUNC_CHECKCARRIER = "checkCarrier";
+
+    protected Shipment(String contractAddress, Client client, CryptoKeyPair credential) {
+        super(getBinary(client.getCryptoSuite()), contractAddress, client, credential);
+    }
+
+    public static String getBinary(CryptoSuite cryptoSuite) {
+        return (cryptoSuite.getCryptoTypeConfig() == CryptoType.ECDSA_TYPE ? BINARY : SM_BINARY);
+    }
+
+    public TransactionReceipt addUser(String _name, String _passwd) {
+        final Function function = new Function(
+                FUNC_ADDUSER, 
+                Arrays.<Type>asList(new org.fisco.bcos.sdk.abi.datatypes.Utf8String(_name), 
+                new org.fisco.bcos.sdk.abi.datatypes.Utf8String(_passwd)), 
+                Collections.<TypeReference<?>>emptyList());
+        return executeTransaction(function);
+    }
+
+    public byte[] addUser(String _name, String _passwd, TransactionCallback callback) {
+        final Function function = new Function(
+                FUNC_ADDUSER, 
+                Arrays.<Type>asList(new org.fisco.bcos.sdk.abi.datatypes.Utf8String(_name), 
+                new org.fisco.bcos.sdk.abi.datatypes.Utf8String(_passwd)), 
+                Collections.<TypeReference<?>>emptyList());
+        return asyncExecuteTransaction(function, callback);
+    }
+
+    public String getSignedTransactionForAddUser(String _name, String _passwd) {
+        final Function function = new Function(
+                FUNC_ADDUSER, 
+                Arrays.<Type>asList(new org.fisco.bcos.sdk.abi.datatypes.Utf8String(_name), 
+                new org.fisco.bcos.sdk.abi.datatypes.Utf8String(_passwd)), 
+                Collections.<TypeReference<?>>emptyList());
+        return createSignedTransaction(function);
+    }
+
+    public Tuple2<String, String> getAddUserInput(TransactionReceipt transactionReceipt) {
+        String data = transactionReceipt.getInput().substring(10);
+        final Function function = new Function(FUNC_ADDUSER, 
+                Arrays.<Type>asList(), 
+                Arrays.<TypeReference<?>>asList(new TypeReference<Utf8String>() {}, new TypeReference<Utf8String>() {}));
+        List<Type> results = FunctionReturnDecoder.decode(data, function.getOutputParameters());
+        return new Tuple2<String, String>(
+
+                (String) results.get(0).getValue(), 
+                (String) results.get(1).getValue()
+                );
+    }
+
+    public Tuple8<BigInteger, BigInteger, BigInteger, String, String, String, BigInteger, BigInteger> getShipment(BigInteger _id) throws ContractException {
+        final Function function = new Function(FUNC_GETSHIPMENT, 
+                Arrays.<Type>asList(new org.fisco.bcos.sdk.abi.datatypes.generated.Uint256(_id)), 
+                Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>() {}, new TypeReference<Uint256>() {}, new TypeReference<Uint256>() {}, new TypeReference<Utf8String>() {}, new TypeReference<Utf8String>() {}, new TypeReference<Utf8String>() {}, new TypeReference<Uint256>() {}, new TypeReference<Uint256>() {}));
+        List<Type> results = executeCallWithMultipleValueReturn(function);
+        return new Tuple8<BigInteger, BigInteger, BigInteger, String, String, String, BigInteger, BigInteger>(
+                (BigInteger) results.get(0).getValue(), 
+                (BigInteger) results.get(1).getValue(), 
+                (BigInteger) results.get(2).getValue(), 
+                (String) results.get(3).getValue(), 
+                (String) results.get(4).getValue(), 
+                (String) results.get(5).getValue(), 
+                (BigInteger) results.get(6).getValue(), 
+                (BigInteger) results.get(7).getValue());
+    }
+
+    public TransactionReceipt addCarrier(String _name, String _info, String _passwd) {
+        final Function function = new Function(
+                FUNC_ADDCARRIER, 
+                Arrays.<Type>asList(new org.fisco.bcos.sdk.abi.datatypes.Utf8String(_name), 
+                new org.fisco.bcos.sdk.abi.datatypes.Utf8String(_info), 
+                new org.fisco.bcos.sdk.abi.datatypes.Utf8String(_passwd)), 
+                Collections.<TypeReference<?>>emptyList());
+        return executeTransaction(function);
+    }
+
+    public byte[] addCarrier(String _name, String _info, String _passwd, TransactionCallback callback) {
+        final Function function = new Function(
+                FUNC_ADDCARRIER, 
+                Arrays.<Type>asList(new org.fisco.bcos.sdk.abi.datatypes.Utf8String(_name), 
+                new org.fisco.bcos.sdk.abi.datatypes.Utf8String(_info), 
+                new org.fisco.bcos.sdk.abi.datatypes.Utf8String(_passwd)), 
+                Collections.<TypeReference<?>>emptyList());
+        return asyncExecuteTransaction(function, callback);
+    }
+
+    public String getSignedTransactionForAddCarrier(String _name, String _info, String _passwd) {
+        final Function function = new Function(
+                FUNC_ADDCARRIER, 
+                Arrays.<Type>asList(new org.fisco.bcos.sdk.abi.datatypes.Utf8String(_name), 
+                new org.fisco.bcos.sdk.abi.datatypes.Utf8String(_info), 
+                new org.fisco.bcos.sdk.abi.datatypes.Utf8String(_passwd)), 
+                Collections.<TypeReference<?>>emptyList());
+        return createSignedTransaction(function);
+    }
+
+    public Tuple3<String, String, String> getAddCarrierInput(TransactionReceipt transactionReceipt) {
+        String data = transactionReceipt.getInput().substring(10);
+        final Function function = new Function(FUNC_ADDCARRIER, 
+                Arrays.<Type>asList(), 
+                Arrays.<TypeReference<?>>asList(new TypeReference<Utf8String>() {}, new TypeReference<Utf8String>() {}, new TypeReference<Utf8String>() {}));
+        List<Type> results = FunctionReturnDecoder.decode(data, function.getOutputParameters());
+        return new Tuple3<String, String, String>(
+
+                (String) results.get(0).getValue(), 
+                (String) results.get(1).getValue(), 
+                (String) results.get(2).getValue()
+                );
+    }
+
+    public Boolean checkUser(BigInteger _id, String _passwd) throws ContractException {
+        final Function function = new Function(FUNC_CHECKUSER, 
+                Arrays.<Type>asList(new org.fisco.bcos.sdk.abi.datatypes.generated.Uint256(_id), 
+                new org.fisco.bcos.sdk.abi.datatypes.Utf8String(_passwd)), 
+                Arrays.<TypeReference<?>>asList(new TypeReference<Bool>() {}));
+        return executeCallWithSingleValueReturn(function, Boolean.class);
+    }
+
+    public List getShipmentsByCarrier(BigInteger _id) throws ContractException {
+        final Function function = new Function(FUNC_GETSHIPMENTSBYCARRIER, 
+                Arrays.<Type>asList(new org.fisco.bcos.sdk.abi.datatypes.generated.Uint256(_id)), 
+                Arrays.<TypeReference<?>>asList(new TypeReference<DynamicArray<Uint256>>() {}));
+        List<Type> result = (List<Type>) executeCallWithSingleValueReturn(function, List.class);
+        return convertToNative(result);
+    }
+
+    public String getStatus(BigInteger _id) throws ContractException {
+        final Function function = new Function(FUNC_GETSTATUS, 
+                Arrays.<Type>asList(new org.fisco.bcos.sdk.abi.datatypes.generated.Uint256(_id)), 
+                Arrays.<TypeReference<?>>asList(new TypeReference<Utf8String>() {}));
+        return executeCallWithSingleValueReturn(function, String.class);
+    }
+
+    public TransactionReceipt addShipment(BigInteger _id, BigInteger _carrier, String _from, String _to) {
+        final Function function = new Function(
+                FUNC_ADDSHIPMENT, 
+                Arrays.<Type>asList(new org.fisco.bcos.sdk.abi.datatypes.generated.Uint256(_id), 
+                new org.fisco.bcos.sdk.abi.datatypes.generated.Uint256(_carrier), 
+                new org.fisco.bcos.sdk.abi.datatypes.Utf8String(_from), 
+                new org.fisco.bcos.sdk.abi.datatypes.Utf8String(_to)), 
+                Collections.<TypeReference<?>>emptyList());
+        return executeTransaction(function);
+    }
+
+    public byte[] addShipment(BigInteger _id, BigInteger _carrier, String _from, String _to, TransactionCallback callback) {
+        final Function function = new Function(
+                FUNC_ADDSHIPMENT, 
+                Arrays.<Type>asList(new org.fisco.bcos.sdk.abi.datatypes.generated.Uint256(_id), 
+                new org.fisco.bcos.sdk.abi.datatypes.generated.Uint256(_carrier), 
+                new org.fisco.bcos.sdk.abi.datatypes.Utf8String(_from), 
+                new org.fisco.bcos.sdk.abi.datatypes.Utf8String(_to)), 
+                Collections.<TypeReference<?>>emptyList());
+        return asyncExecuteTransaction(function, callback);
+    }
+
+    public String getSignedTransactionForAddShipment(BigInteger _id, BigInteger _carrier, String _from, String _to) {
+        final Function function = new Function(
+                FUNC_ADDSHIPMENT, 
+                Arrays.<Type>asList(new org.fisco.bcos.sdk.abi.datatypes.generated.Uint256(_id), 
+                new org.fisco.bcos.sdk.abi.datatypes.generated.Uint256(_carrier), 
+                new org.fisco.bcos.sdk.abi.datatypes.Utf8String(_from), 
+                new org.fisco.bcos.sdk.abi.datatypes.Utf8String(_to)), 
+                Collections.<TypeReference<?>>emptyList());
+        return createSignedTransaction(function);
+    }
+
+    public Tuple4<BigInteger, BigInteger, String, String> getAddShipmentInput(TransactionReceipt transactionReceipt) {
+        String data = transactionReceipt.getInput().substring(10);
+        final Function function = new Function(FUNC_ADDSHIPMENT, 
+                Arrays.<Type>asList(), 
+                Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>() {}, new TypeReference<Uint256>() {}, new TypeReference<Utf8String>() {}, new TypeReference<Utf8String>() {}));
+        List<Type> results = FunctionReturnDecoder.decode(data, function.getOutputParameters());
+        return new Tuple4<BigInteger, BigInteger, String, String>(
+
+                (BigInteger) results.get(0).getValue(), 
+                (BigInteger) results.get(1).getValue(), 
+                (String) results.get(2).getValue(), 
+                (String) results.get(3).getValue()
+                );
+    }
+
+    public TransactionReceipt updateShipment(BigInteger carrier_id, BigInteger shipment_id, String _status) {
+        final Function function = new Function(
+                FUNC_UPDATESHIPMENT, 
+                Arrays.<Type>asList(new org.fisco.bcos.sdk.abi.datatypes.generated.Uint256(carrier_id), 
+                new org.fisco.bcos.sdk.abi.datatypes.generated.Uint256(shipment_id), 
+                new org.fisco.bcos.sdk.abi.datatypes.Utf8String(_status)), 
+                Collections.<TypeReference<?>>emptyList());
+        return executeTransaction(function);
+    }
+
+    public byte[] updateShipment(BigInteger carrier_id, BigInteger shipment_id, String _status, TransactionCallback callback) {
+        final Function function = new Function(
+                FUNC_UPDATESHIPMENT, 
+                Arrays.<Type>asList(new org.fisco.bcos.sdk.abi.datatypes.generated.Uint256(carrier_id), 
+                new org.fisco.bcos.sdk.abi.datatypes.generated.Uint256(shipment_id), 
+                new org.fisco.bcos.sdk.abi.datatypes.Utf8String(_status)), 
+                Collections.<TypeReference<?>>emptyList());
+        return asyncExecuteTransaction(function, callback);
+    }
+
+    public String getSignedTransactionForUpdateShipment(BigInteger carrier_id, BigInteger shipment_id, String _status) {
+        final Function function = new Function(
+                FUNC_UPDATESHIPMENT, 
+                Arrays.<Type>asList(new org.fisco.bcos.sdk.abi.datatypes.generated.Uint256(carrier_id), 
+                new org.fisco.bcos.sdk.abi.datatypes.generated.Uint256(shipment_id), 
+                new org.fisco.bcos.sdk.abi.datatypes.Utf8String(_status)), 
+                Collections.<TypeReference<?>>emptyList());
+        return createSignedTransaction(function);
+    }
+
+    public Tuple3<BigInteger, BigInteger, String> getUpdateShipmentInput(TransactionReceipt transactionReceipt) {
+        String data = transactionReceipt.getInput().substring(10);
+        final Function function = new Function(FUNC_UPDATESHIPMENT, 
+                Arrays.<Type>asList(), 
+                Arrays.<TypeReference<?>>asList(new TypeReference<Uint256>() {}, new TypeReference<Uint256>() {}, new TypeReference<Utf8String>() {}));
+        List<Type> results = FunctionReturnDecoder.decode(data, function.getOutputParameters());
+        return new Tuple3<BigInteger, BigInteger, String>(
+
+                (BigInteger) results.get(0).getValue(), 
+                (BigInteger) results.get(1).getValue(), 
+                (String) results.get(2).getValue()
+                );
+    }
+
+    public Boolean checkCarrier(BigInteger _id, String _passwd) throws ContractException {
+        final Function function = new Function(FUNC_CHECKCARRIER, 
+                Arrays.<Type>asList(new org.fisco.bcos.sdk.abi.datatypes.generated.Uint256(_id), 
+                new org.fisco.bcos.sdk.abi.datatypes.Utf8String(_passwd)), 
+                Arrays.<TypeReference<?>>asList(new TypeReference<Bool>() {}));
+        return executeCallWithSingleValueReturn(function, Boolean.class);
+    }
+
+    public static Shipment load(String contractAddress, Client client, CryptoKeyPair credential) {
+        return new Shipment(contractAddress, client, credential);
+    }
+
+    public static Shipment deploy(Client client, CryptoKeyPair credential) throws ContractException {
+        return deploy(Shipment.class, client, credential, getBinary(client.getCryptoSuite()), "");
+    }
+}
