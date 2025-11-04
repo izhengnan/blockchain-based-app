@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -32,5 +33,12 @@ public class ICarrierBackendService implements CarrierBackendService {
     public boolean checkCarrier(int id, String passwd) throws ContractException {
         Shipment shipment = Shipment.load(contractAddress,client,client.getCryptoSuite().getCryptoKeyPair());
         return shipment.checkCarrier(new BigInteger(String.valueOf(id)),passwd);
+    }
+
+    @Override
+    public BigInteger[] getShipmentsByCarrier(int id) throws ContractException {
+        Shipment shipment = Shipment.load(contractAddress,client,client.getCryptoSuite().getCryptoKeyPair());
+        List transactionReceipt = shipment.getShipmentsByCarrier(new BigInteger(String.valueOf(id)));
+        return new BigInteger[0];
     }
 }
