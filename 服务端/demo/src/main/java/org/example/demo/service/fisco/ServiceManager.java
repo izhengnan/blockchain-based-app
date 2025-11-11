@@ -35,7 +35,7 @@ public class ServiceManager {
   /**
    * @notice: must use @Qualifier("shipmentService") with @Autowired to get this Bean
    */
-  @Bean("shipmentService")
+  @Bean("shipmentServicee")
   public Map<String, shipmentService> initshipmentServiceManager() throws Exception {
     Map<String, shipmentService> serviceMap = new ConcurrentHashMap<>(this.hexPrivateKeyList.size());
     for (int i = 0; i < this.hexPrivateKeyList.size(); i++) {
@@ -51,7 +51,7 @@ public class ServiceManager {
     	String userAddress = cryptoKeyPair.getAddress();
     	log.info("++++++++hexPrivateKeyList[{}]:{},userAddress:{}", i, privateKey, userAddress);
     	shipmentService shipmentService = new shipmentService();
-    	shipmentService.setAddress(this.config.getContract().getshipmentAddress());
+    	shipmentService.setAddress(this.config.getContract().getShipmentAddress());
     	shipmentService.setClient(this.client);
     	org.fisco.bcos.sdk.transaction.manager.AssembleTransactionProcessor txProcessor = 
     		org.fisco.bcos.sdk.transaction.manager.TransactionProcessorFactory.createAssembleTransactionProcessor(this.client, cryptoKeyPair);

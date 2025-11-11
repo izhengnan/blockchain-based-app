@@ -37,8 +37,10 @@ public class ICarrierBackendService implements CarrierBackendService {
 
     @Override
     public BigInteger[] getShipmentsByCarrier(int id) throws ContractException {
+        //1、获取合约实例
         Shipment shipment = Shipment.load(contractAddress,client,client.getCryptoSuite().getCryptoKeyPair());
-        List transactionReceipt = shipment.getShipmentsByCarrier(new BigInteger(String.valueOf(id)));
-        return new BigInteger[0];
+        //2、与合约交互
+        List<BigInteger> transactionReceipt = shipment.getShipmentsByCarrier(new BigInteger(String.valueOf(id)));
+        return transactionReceipt.toArray(new BigInteger[0]);
     }
 }

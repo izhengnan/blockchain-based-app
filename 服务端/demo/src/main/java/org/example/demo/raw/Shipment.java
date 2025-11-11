@@ -74,13 +74,13 @@ public class Shipment extends Contract {
         return executeTransaction(function);
     }
 
-    public byte[] addUser(String _name, String _passwd, TransactionCallback callback) {
+    public void addUser(String _name, String _passwd, TransactionCallback callback) {
         final Function function = new Function(
                 FUNC_ADDUSER, 
                 Arrays.<Type>asList(new org.fisco.bcos.sdk.abi.datatypes.Utf8String(_name), 
                 new org.fisco.bcos.sdk.abi.datatypes.Utf8String(_passwd)), 
                 Collections.<TypeReference<?>>emptyList());
-        return asyncExecuteTransaction(function, callback);
+        asyncExecuteTransaction(function, callback);
     }
 
     public String getSignedTransactionForAddUser(String _name, String _passwd) {
@@ -131,14 +131,14 @@ public class Shipment extends Contract {
         return executeTransaction(function);
     }
 
-    public byte[] addCarrier(String _name, String _info, String _passwd, TransactionCallback callback) {
+    public void addCarrier(String _name, String _info, String _passwd, TransactionCallback callback) {
         final Function function = new Function(
                 FUNC_ADDCARRIER, 
                 Arrays.<Type>asList(new org.fisco.bcos.sdk.abi.datatypes.Utf8String(_name), 
                 new org.fisco.bcos.sdk.abi.datatypes.Utf8String(_info), 
                 new org.fisco.bcos.sdk.abi.datatypes.Utf8String(_passwd)), 
                 Collections.<TypeReference<?>>emptyList());
-        return asyncExecuteTransaction(function, callback);
+        asyncExecuteTransaction(function, callback);
     }
 
     public String getSignedTransactionForAddCarrier(String _name, String _info, String _passwd) {
@@ -199,7 +199,7 @@ public class Shipment extends Contract {
         return executeTransaction(function);
     }
 
-    public byte[] addShipment(BigInteger _id, BigInteger _carrier, String _from, String _to, TransactionCallback callback) {
+    public void addShipment(BigInteger _id, BigInteger _carrier, String _from, String _to, TransactionCallback callback) {
         final Function function = new Function(
                 FUNC_ADDSHIPMENT, 
                 Arrays.<Type>asList(new org.fisco.bcos.sdk.abi.datatypes.generated.Uint256(_id), 
@@ -207,7 +207,7 @@ public class Shipment extends Contract {
                 new org.fisco.bcos.sdk.abi.datatypes.Utf8String(_from), 
                 new org.fisco.bcos.sdk.abi.datatypes.Utf8String(_to)), 
                 Collections.<TypeReference<?>>emptyList());
-        return asyncExecuteTransaction(function, callback);
+        asyncExecuteTransaction(function, callback);
     }
 
     public String getSignedTransactionForAddShipment(BigInteger _id, BigInteger _carrier, String _from, String _to) {
@@ -246,14 +246,14 @@ public class Shipment extends Contract {
         return executeTransaction(function);
     }
 
-    public byte[] updateShipment(BigInteger carrier_id, BigInteger shipment_id, String _status, TransactionCallback callback) {
+    public void updateShipment(BigInteger carrier_id, BigInteger shipment_id, String _status, TransactionCallback callback) {
         final Function function = new Function(
                 FUNC_UPDATESHIPMENT, 
                 Arrays.<Type>asList(new org.fisco.bcos.sdk.abi.datatypes.generated.Uint256(carrier_id), 
                 new org.fisco.bcos.sdk.abi.datatypes.generated.Uint256(shipment_id), 
                 new org.fisco.bcos.sdk.abi.datatypes.Utf8String(_status)), 
                 Collections.<TypeReference<?>>emptyList());
-        return asyncExecuteTransaction(function, callback);
+        asyncExecuteTransaction(function, callback);
     }
 
     public String getSignedTransactionForUpdateShipment(BigInteger carrier_id, BigInteger shipment_id, String _status) {
