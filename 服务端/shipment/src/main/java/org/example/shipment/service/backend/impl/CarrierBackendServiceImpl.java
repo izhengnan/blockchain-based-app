@@ -154,7 +154,7 @@ public class CarrierBackendServiceImpl implements CarrierBackendService {
             }
             
         } catch (Exception e) {
-            log.error("更新承运商密码失败，名称: {}, 错误: {}", name, e.getMessage(), e);
+            log.error("更新承运商密码失败，id: {}, 错误: {}", id, e.getMessage(), e);
             return false;
         }
     }

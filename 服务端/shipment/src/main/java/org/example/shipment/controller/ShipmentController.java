@@ -4,6 +4,7 @@ import org.example.shipment.dto.Shipment;
 import org.example.shipment.dto.UpdateShipmentDTO;
 import org.example.shipment.model.CommonResponse;
 import org.example.shipment.service.backend.ShipmentBackendService;
+import org.example.shipment.service.backend.UserBackendService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -82,6 +83,13 @@ public class ShipmentController {
     public CommonResponse GetShipmentStatusById(@RequestParam BigInteger id) {
         String status = shipmentBackendService.getShipmentStatusById(id);
         return status == null ? CommonResponse.fail("404", new Exception("物流不存在")) : CommonResponse.ok(status);
+    }
+    //根据用户id查询物流
+    @CrossOrigin
+    @GetMapping("/getByUserId")
+    public CommonResponse GetShipmentByUserId(@RequestParam BigInteger userId) {
+        List<Shipment> listShipment = shipmentBackendService.getShipmentByUserId(userId);
+        return listShipment == null ? CommonResponse.fail("404", new Exception("物流不存在")) : CommonResponse.ok(listShipment);
     }
 
 }

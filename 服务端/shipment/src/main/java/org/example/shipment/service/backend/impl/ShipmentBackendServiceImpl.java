@@ -174,4 +174,19 @@ public class ShipmentBackendServiceImpl implements ShipmentBackendService {
             return null;
         }
     }
+
+    @Override
+    public List<Shipment> getShipmentByUserId(BigInteger userId) {
+        //先查询所有的运输记录，然后根据用户ID过滤
+        List<Shipment> shipments = getAllShipment();
+        List<Shipment> userShipments = new ArrayList<>();
+        for (Shipment shipment : shipments) {
+            if (shipment.getUser_id().equals(userId)) {
+                userShipments.add(shipment);
+            }
+        }
+        log.info("根据用户ID获取运输记录成功，共找到 {} 条记录，用户ID：{}", 
+            userShipments.size(), userId);
+        return userShipments;
+    }
 }

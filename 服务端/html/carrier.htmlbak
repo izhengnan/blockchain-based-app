@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>航运物流系统 - 承运商中心</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft YaHei', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .wrapper {
+            display: flex;
+            min-height: 100vh;
+            position: relative;
+        }
+        
+        /* 添加页面背景装饰 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(120, 119, 198, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(255, 119, 198, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        /* 主体内容区域 */
+        .main-content {
+            flex: 1;
+            padding: 0;
+        }
+        
+        .top-bar {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 25px 35px;
+            box-shadow: 
+                0 4px 6px -1px rgba(0, 0, 0, 0.1),
+                0 2px 4px -1px rgba(0, 0, 0, 0.06),
+                inset 0 1px 0 rgba(255, 255, 255, 0.6);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .left-section {
+            flex: 1;
+        }
+        
+        .top-bar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent);
+        }
+        
+        .top-bar h1 {
+            background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            letter-spacing: -0.025em;
+        }
+        
+        .top-bar h1 i {
+            margin-right: 18px;
+            background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 1.8rem;
+        }
+        
+        .breadcrumb {
+            background: none;
+            padding: 0;
+            margin-top: 8px;
+        }
+        
+        .breadcrumb-item {
+            color: #718096;
+        }
+        
+        .breadcrumb-item.active {
+            color: #4a5568;
+            font-weight: 500;
+        }
+        
+        .content-area {
+            padding: 30px;
+        }
+        
+        .dashboard-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 
+                0 10px 25px -5px rgba(0, 0, 0, 0.1),
+                0 8px 10px -6px rgba(0, 0, 0, 0.05),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            margin-bottom: 30px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 
+                0 20px 30px -10px rgba(0, 0, 0, 0.15),
+                0 10px 15px -5px rgba(0, 0, 0, 0.08),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        }
+        
+        .card-header {
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        .card-header h3 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #2d3748;
+            display: flex;
+            align-items: center;
+            margin: 0;
+        }
+        
+        .card-header h3 i {
+            margin-right: 12px;
+            color: #4299e1;
+        }
+        
+        .search-section {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: rgba(247, 250, 252, 0.8);
+            border-radius: 15px;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+        
+        .search-section h4 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .search-section h4 i {
+            margin-right: 8px;
+            color: #718096;
+        }
+        
+        .search-input-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: nowrap; /* 防止换行 */
+            width: 100%;
+        }
+        
+        .search-input-group input {
+            flex: 1;
+            min-width: 250px;
+        }
+        
+        /* 搜索按钮样式调整，确保在同一行且大小适中 */
+        .search-input-group button {
+            white-space: nowrap;
+            min-width: 120px;
+        }
+        
+        .search-input {
+            padding: 12px 16px;
+            border: 2px solid rgba(226, 232, 240, 0.8);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.9);
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: #4299e1;
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+            background: white;
+        }
+        
+        .btn-primary-custom {
+            background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 12px 24px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(66, 153, 225, 0.2);
+            min-width: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .btn-primary-custom:hover {
+            background: linear-gradient(135deg, #3182ce 0%, #2c5282 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px -1px rgba(66, 153, 225, 0.3);
+        }
+        
+        .btn-secondary-custom {
+            background: linear-gradient(135deg, #718096 0%, #4a5568 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 12px 24px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(113, 128, 150, 0.2);
+            min-width: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .btn-secondary-custom:hover {
+            background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px -1px rgba(113, 128, 150, 0.3);
+        }
+        
+        .btn-update-custom {
+            background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px -1px rgba(56, 161, 105, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        
+        .btn-update-custom:hover {
+            background: linear-gradient(135deg, #2f855a 0%, #276749 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(56, 161, 105, 0.3);
+        }
+        
+        .user-info-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .user-info {
+            text-align: right;
+        }
+        
+        .username {
+            font-weight: 500;
+            color: #2d3748;
+            font-size: 1rem;
+        }
+        
+        .role {
+            font-size: 0.875rem;
+            color: #718096;
+        }
+        
+        .loading-spinner {
+            text-align: center;
+            padding: 40px 0;
+            display: none;
+        }
+        
+        .alert-custom {
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: none;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .alert-success {
+            background: linear-gradient(135deg, rgba(52, 211, 153, 0.1) 0%, rgba(34, 197, 94, 0.1) 100%);
+            color: #16a34a;
+            border-left: 4px solid #22c55e;
+        }
+        
+        .alert-danger {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.1) 100%);
+            color: #dc2626;
+            border-left: 4px solid #ef4444;
+        }
+        
+        .shipment-table {
+            overflow-x: auto;
+        }
+        
+        .shipment-table table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        
+        .shipment-table th {
+            background: rgba(66, 153, 225, 0.05);
+            color: #4a5568;
+            font-weight: 600;
+            text-align: left;
+            padding: 15px 20px;
+            border-bottom: 2px solid rgba(226, 232, 240, 0.8);
+        }
+        
+        .shipment-table td {
+            padding: 15px 20px;
+            border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+            transition: background-color 0.2s ease;
+        }
+        
+        .shipment-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .shipment-table tbody tr:hover {
+            background: rgba(66, 153, 225, 0.05);
+            cursor: pointer;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        
+        .status-active {
+            background: rgba(56, 161, 105, 0.1);
+            color: #22c55e;
+        }
+        
+        .status-pending {
+            background: rgba(245, 158, 11, 0.1);
+            color: #f59e0b;
+        }
+        
+        .status-completed {
+            background: rgba(66, 153, 225, 0.1);
+            color: #3b82f6;
+        }
+        
+        /* 模态框样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            transition: opacity 0.3s ease;
+        }
+        
+        .modal-content {
+            background: white;
+            margin: 10% auto;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            width: 90%;
+            max-width: 500px;
+            animation: modalFadeIn 0.3s ease;
+        }
+        
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .modal-header h5 {
+            margin: 0;
+            color: #2d3748;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #718096;
+            transition: color 0.2s ease;
+        }
+        
+        .modal-close:hover {
+            color: #2d3748;
+        }
+        
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 25px;
+        }
+        
+        .modal-body .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .modal-body label {
+            display: block;
+            margin-bottom: 8px;
+            color: #4a5568;
+            font-weight: 500;
+        }
+        
+        .modal-body input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid rgba(226, 232, 240, 0.8);
+            border-radius: 12px;
+            font-size: 1rem;
+        }
+        
+        .modal-body input:focus {
+            outline: none;
+            border-color: #4299e1;
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .top-bar {
+                padding: 20px 20px;
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+            }
+            
+            .user-info-section {
+                align-self: flex-end;
+            }
+            
+            .top-bar h1 {
+                font-size: 1.8rem;
+            }
+            
+            .content-area {
+                padding: 20px;
+            }
+            
+            .dashboard-card {
+                padding: 20px;
+            }
+            
+            .search-input-group {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 15px; /* 在移动端增加间距 */
+            }
+            
+            .search-input {
+                width: 100%; /* 在移动端使用100%宽度 */
+            }
+            
+            .btn-primary-custom,
+            .btn-secondary-custom {
+                min-width: auto; /* 在移动端自动宽度 */
+            }
+            
+            .shipment-table th,
+            .shipment-table td {
+                padding: 10px 15px;
+                font-size: 0.9rem;
+            }
+            
+            .modal-content {
+                margin: 20% auto;
+                padding: 20px;
+                width: 95%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <main class="main-content">
+            <!-- 顶部导航栏 -->
+            <div class="top-bar">
+                <div class="left-section">
+                    <h1>航运物流系统</h1>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="#" style="text-decoration: none;">首页</a></li>
+                            <li class="breadcrumb-item active">物流管理</li>
+                        </ol>
+                    </nav>
+                </div>
+                <!-- 用户信息和退出按钮 -->
+                <div class="user-info-section">
+                    <div class="user-info">
+                        <div class="username">承运商</div>
+                        <div class="role">系统用户</div>
+                    </div>
+                    <button class="btn btn-outline-danger" onclick="logout()">
+                        <i class="bi bi-box-arrow-right"></i>
+                        退出
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 内容区域 -->
+            <div class="content-area">
+                <!-- 物流管理卡片 -->
+                <div class="dashboard-card">
+                    <!-- 搜索区域 -->
+                    <div class="search-section">
+                        <h4><i class="bi bi-search"></i> 搜索物流信息</h4>
+                        
+                        <!-- 合并搜索区域 -->
+                        <div class="search-input-group">
+                            <input type="text" class="form-control search-input" id="searchInput" placeholder="请输入物流ID或用户ID进行查询...">
+                            <button class="btn btn-primary-custom" onclick="searchByShipmentId()">
+                                <i class="bi bi-search"></i>
+                                按物流ID查询
+                            </button>
+                            <button class="btn btn-primary-custom" onclick="searchByUserId()">
+                                <i class="bi bi-search"></i>
+                                按用户ID查询
+                            </button>
+                            <button class="btn btn-secondary-custom" onclick="clearSearchAndShowAll()">
+                                <i class="bi bi-trash"></i>
+                                清空查询
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 加载指示器 -->
+                    <div class="loading-spinner" id="loadingSpinner">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">加载中...</span>
+                        </div>
+                        <div class="mt-3">正在加载物流数据...</div>
+                    </div>
+                    
+                    <!-- 消息提示 -->
+                    <div id="messageContainer"></div>
+                    
+                    <!-- 物流列表表格 -->
+                    <div class="shipment-table">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th><i class="bi bi-hash"></i> 物流ID</th>
+                                    <th><i class="bi bi-person"></i> 用户ID</th>
+                                    <th><i class="bi bi-map"></i> 出发地</th>
+                                    <th><i class="bi bi-flag"></i> 目的地</th>
+                                    <th><i class="bi bi-clock"></i> 创建时间</th>
+                                    <th><i class="bi bi-arrow-repeat"></i> 更新时间</th>
+                                    <th><i class="bi bi-check-circle"></i> 状态</th>
+                                    <th><i class="bi bi-tools"></i> 操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="shipmentTableBody">
+                                <!-- 动态生成物流列表 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- 更新状态模态框 -->
+    <div id="updateStatusModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5>更新物流状态</h5>
+                <button class="modal-close" onclick="closeUpdateModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>物流ID：</label>
+                    <span id="shipmentIdDisplay" class="form-value"></span>
+                </div>
+                <div class="form-group">
+                    <label for="statusInput">请输入物流最新状态</label>
+                    <input type="text" id="statusInput" placeholder="例如：进行中、待处理、已完成">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary-custom" onclick="closeUpdateModal()">取消</button>
+                <button class="btn btn-primary-custom" onclick="updateShipmentStatus()">确定</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 更新状态模态框 -->
+    <div id="updateStatusModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5>更新物流状态</h5>
+                <button type="button" class="modal-close" onclick="closeUpdateModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>物流ID：</label>
+                    <span id="shipmentIdDisplay" class="form-value"></span>
+                </div>
+                <div class="form-group">
+                    <label for="statusInput">请输入物流最新状态:</label>
+                    <input type="text" id="statusInput" placeholder="例如: 运输中、已完成、待处理等">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary-custom" onclick="closeUpdateModal()">取消</button>
+                <button type="button" class="btn-primary-custom" onclick="updateShipmentStatus()">确定</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 当前登录的承运商ID（实际应用中应从登录状态获取）
+        const currentCarrierId = 'CAR001';
+        
+        // 退出登录功能
+        function logout() {
+            if (confirm('确定要退出登录吗？')) {
+                // 这里可以添加实际的退出登录逻辑
+                alert('已退出登录');
+                // 实际应用中可以重定向到登录页面
+                // window.location.href = 'login.html';
+            }
+        }
+        
+        // 更新用户信息显示
+        function updateUserInfoDisplay() {
+            const usernameElement = document.querySelector('.username');
+            if (usernameElement) {
+                // 从mockCarrierData中获取承运商名称
+                const carrierName = mockCarrierData[currentCarrierId] ? mockCarrierData[currentCarrierId].name : '承运商';
+                usernameElement.textContent = carrierName;
+            }
+        }
+        
+        // 响应式布局处理
+        function handleResponsiveLayout() {
+            const isMobile = window.innerWidth < 768;
+            const topBar = document.querySelector('.top-bar');
+            const userInfoSection = document.querySelector('.user-info-section');
+            
+            if (isMobile) {
+                topBar.classList.remove('justify-content-between');
+                topBar.classList.add('flex-column', 'align-items-start', 'gap-15px');
+                if (userInfoSection) {
+                    userInfoSection.classList.add('align-self-end');
+                }
+            } else {
+                topBar.classList.add('justify-content-between');
+                topBar.classList.remove('flex-column', 'align-items-start', 'gap-15px');
+                if (userInfoSection) {
+                    userInfoSection.classList.remove('align-self-end');
+                }
+            }
+        }
+        
+        // 监听窗口大小变化，调整布局
+        window.addEventListener('resize', handleResponsiveLayout);
+        
+        // 模拟承运商数据（实际应用中应从后端API获取）
+        const mockCarrierData = {
+            'CAR001': {
+                id: 'CAR001',
+                name: '顺丰速运',
+                contact: '张经理',
+                phone: '4008-111-111'
+            },
+            'CAR002': {
+                id: 'CAR002',
+                name: '中通快递',
+                contact: '李主管',
+                phone: '95311'
+            },
+            'CAR003': {
+                id: 'CAR003',
+                name: '圆通速递',
+                contact: '王总',
+                phone: '95554'
+            }
+        };
+        
+        // 模拟物流数据（实际应用中应从后端API获取）
+        const mockShipmentData = [
+            {
+                id: 'SHIP001',
+                user_id: 'USER001',
+                carrier: 'CAR001',
+                status: 'active',
+                from_address: '北京市朝阳区建国路88号',
+                to_address: '上海市浦东新区张江高科技园区',
+                create_time: '2023-10-01 10:30:00',
+                update_time: '2023-10-01 14:20:00'
+            },
+            {
+                id: 'SHIP002',
+                user_id: 'USER002',
+                carrier: 'CAR001',
+                status: 'pending',
+                from_address: '广州市天河区天河路385号',
+                to_address: '深圳市南山区科技园',
+                create_time: '2023-10-01 09:15:00',
+                update_time: '2023-10-01 09:15:00'
+            },
+            {
+                id: 'SHIP003',
+                user_id: 'USER001',
+                carrier: 'CAR001',
+                status: 'completed',
+                from_address: '杭州市西湖区文三路478号',
+                to_address: '成都市武侯区天府大道',
+                create_time: '2023-09-28 16:45:00',
+                update_time: '2023-09-30 11:20:00'
+            },
+            {
+                id: 'SHIP004',
+                user_id: 'USER003',
+                carrier: 'CAR001',
+                status: 'active',
+                from_address: '武汉市洪山区光谷软件园',
+                to_address: '西安市雁塔区科技路',
+                create_time: '2023-10-01 08:30:00',
+                update_time: '2023-10-01 13:45:00'
+            },
+            {
+                id: 'SHIP005',
+                user_id: 'USER002',
+                carrier: 'CAR001',
+                status: 'pending',
+                from_address: '南京市鼓楼区中山路',
+                to_address: '重庆市渝中区解放碑',
+                create_time: '2023-10-01 11:00:00',
+                update_time: '2023-10-01 11:00:00'
+            },
+            {
+                id: 'SHIP006',
+                user_id: 'USER003',
+                carrier: 'CAR001',
+                status: 'completed',
+                from_address: '深圳市南山区粤海街道',
+                to_address: '北京市海淀区中关村大街',
+                create_time: '2023-09-29 14:20:00',
+                update_time: '2023-10-01 09:30:00'
+            },
+            {
+                id: 'SHIP007',
+                user_id: 'USER004',
+                carrier: 'CAR001',
+                status: 'active',
+                from_address: '成都市锦江区春熙路',
+                to_address: '杭州市余杭区未来科技城',
+                create_time: '2023-10-01 13:15:00',
+                update_time: '2023-10-01 15:45:00'
+            },
+            {
+                id: 'SHIP008',
+                user_id: 'USER001',
+                carrier: 'CAR001',
+                status: 'cancelled',
+                from_address: '上海市静安区南京西路',
+                to_address: '广州市天河区珠江新城',
+                create_time: '2023-09-30 10:00:00',
+                update_time: '2023-09-30 16:20:00'
+            },
+            {
+                id: 'SHIP009',
+                user_id: 'USER004',
+                carrier: 'CAR001',
+                status: 'pending',
+                from_address: '重庆市江北区观音桥',
+                to_address: '深圳市福田区CBD',
+                create_time: '2023-10-01 16:30:00',
+                update_time: '2023-10-01 16:30:00'
+            },
+            {
+                id: 'SHIP010',
+                user_id: 'USER003',
+                carrier: 'CAR001',
+                status: 'completed',
+                from_address: '西安市高新区科技路',
+                to_address: '武汉市江汉区江汉路',
+                create_time: '2023-09-27 15:40:00',
+                update_time: '2023-09-29 10:15:00'
+            },
+            {
+                id: 'SHIP011',
+                user_id: 'USER002',
+                carrier: 'CAR001',
+                status: 'active',
+                from_address: '杭州市上城区湖滨路',
+                to_address: '南京市玄武区珠江路',
+                create_time: '2023-10-01 07:50:00',
+                update_time: '2023-10-01 12:30:00'
+            },
+            {
+                id: 'SHIP012',
+                user_id: 'USER005',
+                carrier: 'CAR001',
+                status: 'pending',
+                from_address: '青岛市市南区栈桥',
+                to_address: '大连市中山区友好广场',
+                create_time: '2023-10-01 14:00:00',
+                update_time: '2023-10-01 14:00:00'
+            }
+        ];
+        
+        // 状态映射
+        const statusMap = {
+            active: { class: 'status-active', text: '进行中' },
+            pending: { class: 'status-pending', text: '待处理' },
+            completed: { class: 'status-completed', text: '已完成' },
+            cancelled: { class: 'status-cancelled', text: '已取消' }
+        };
+        
+        // 获取状态显示信息
+        function getStatusDisplay(status) {
+            return statusMap[status] || { class: 'status-unknown', text: '未知状态' };
+        }
+        
+        // 格式化日期时间
+        function formatDateTime(dateTimeString) {
+            // 简单实现，实际应用中可能需要更复杂的日期处理
+            return dateTimeString;
+        }
+        
+        // 格式化地址（限制显示长度）
+        function formatAddress(address, maxLength = 20) {
+            if (address.length <= maxLength) {
+                return address;
+            }
+            return address.substring(0, maxLength) + '...';
+        }
+        
+        // 错误处理函数
+        function handleError(message) {
+            showMessage(message, 'error');
+            console.error('操作失败:', message);
+        }
+        
+        // 显示加载中状态
+        function showLoading() {
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            if (loadingSpinner) {
+                loadingSpinner.style.display = 'block';
+            }
+        }
+        
+        // 隐藏加载中状态
+        function hideLoading() {
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            if (loadingSpinner) {
+                loadingSpinner.style.display = 'none';
+            }
+        }
+        
+        // 显示消息提示
+        function showMessage(message, type = 'success') {
+            const messageContainer = document.getElementById('messageContainer');
+            if (messageContainer) {
+                // 移除之前的消息
+                messageContainer.innerHTML = '';
+                
+                // 创建新的消息元素
+                const alertClass = type === 'error' ? 'alert-danger' : 'alert-success';
+                const iconClass = type === 'error' ? 'bi-exclamation-circle' : 'bi-check-circle';
+                
+                const alertElement = document.createElement('div');
+                alertElement.className = `alert-custom ${alertClass}`;
+                alertElement.innerHTML = `
+                    <i class="bi ${iconClass}"></i>
+                    <span>${message}</span>
+                `;
+                
+                messageContainer.appendChild(alertElement);
+                
+                // 3秒后自动隐藏消息
+                setTimeout(() => {
+                    alertElement.style.opacity = '0';
+                    alertElement.style.transition = 'opacity 0.3s ease';
+                    setTimeout(() => {
+                        messageContainer.innerHTML = '';
+                    }, 300);
+                }, 3000);
+            }
+        }
+        
+        // 渲染物流数据到表格
+        function renderShipmentData(data) {
+            const tableBody = document.getElementById('shipmentTableBody');
+            if (!tableBody) {
+                handleError('找不到表格元素');
+                return;
+            }
+            
+            // 清空表格内容
+            tableBody.innerHTML = '';
+            
+            // 检查数据有效性
+            if (!Array.isArray(data) || data.length === 0) {
+                // 添加空数据提示行
+                const emptyRow = document.createElement('tr');
+                emptyRow.className = 'no-data-row';
+                emptyRow.innerHTML = `
+                    <td colspan="9" class="text-center">暂无物流信息</td>
+                `;
+                tableBody.appendChild(emptyRow);
+                return;
+            }
+            
+            // 遍历数据创建表格行
+            data.forEach(item => {
+                const row = document.createElement('tr');
+                row.className = 'shipment-row';
+                row.setAttribute('data-id', item.id);
+                
+                // 获取状态显示信息
+                const statusInfo = getStatusDisplay(item.status);
+                
+                // 构建表格行内容
+                row.innerHTML = `
+                    <td>${item.id}</td>
+                    <td>${item.user_id}</td>
+                    <td title="${item.from_address}">${formatAddress(item.from_address)}</td>
+                    <td title="${item.to_address}">${formatAddress(item.to_address)}</td>
+                    <td>${formatDateTime(item.create_time)}</td>
+                    <td>${formatDateTime(item.update_time)}</td>
+                    <td>
+                        <span class="status-badge ${statusInfo.class}">${statusInfo.text}</span>
+                    </td>
+                    <td>
+                        <button class="btn-update-custom" onclick="openUpdateStatusModal('${item.id}')">
+                            <i class="bi bi-pencil"></i>
+                            更新状态
+                        </button>
+                    </td>
+                `;
+                
+                // 添加行点击效果
+                row.addEventListener('click', function(e) {
+                    // 如果点击的是按钮，不触发行点击事件
+                    if (e.target.tagName === 'BUTTON' || e.target.closest('.btn-action')) {
+                        return;
+                    }
+                    // 这里可以添加查看详情的逻辑
+                });
+                
+                // 添加鼠标悬停效果
+                row.addEventListener('mouseenter', function() {
+                    this.classList.add('hover');
+                });
+                
+                row.addEventListener('mouseleave', function() {
+                    this.classList.remove('hover');
+                });
+                
+                // 添加行到表格
+                tableBody.appendChild(row);
+                
+                // 触发渐入动画
+                setTimeout(() => {
+                    row.classList.add('fade-in');
+                }, 50);
+            });
+            
+            // 添加动画样式
+            addAnimationStyles();
+        }
+        
+        // 添加动画样式
+        function addAnimationStyles() {
+            // 检查是否已经添加了样式
+            if (document.getElementById('table-animation-styles')) {
+                return;
+            }
+            
+            const style = document.createElement('style');
+            style.id = 'table-animation-styles';
+            style.textContent = `
+                .shipment-row {
+                    opacity: 0;
+                    transform: translateY(10px);
+                    transition: opacity 0.3s ease, transform 0.3s ease;
+                }
+                .shipment-row.fade-in {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+                .shipment-row.hover {
+                    background-color: rgba(248, 250, 252, 0.5);
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        // 加载当前承运商的物流信息
+        function loadCarrierShipments() {
+            showLoading();
+            
+            // 模拟API请求延迟
+            setTimeout(() => {
+                try {
+                    // 筛选与当前承运商相关的数据
+                    const filteredData = mockShipmentData.filter(item => 
+                        item.carrier === currentCarrierId
+                    );
+                    
+                    // 按更新时间倒序排序
+                    filteredData.sort((a, b) => {
+                        return new Date(b.update_time) - new Date(a.update_time);
+                    });
+                    
+                    // 渲染数据
+                    renderShipmentData(filteredData);
+                    showMessage(`共加载 ${filteredData.length} 条物流信息`);
+                } catch (error) {
+                    handleError('加载物流信息失败，请稍后重试');
+                } finally {
+                    hideLoading();
+                }
+            }, 300);
+        }
+        
+        // 按物流ID搜索
+        function searchByShipmentId() {
+            const searchInput = document.getElementById('searchInput');
+            const shipmentId = searchInput.value.trim();
+            
+            if (!shipmentId) {
+                showMessage('请输入物流ID', 'error');
+                return;
+            }
+            
+            showLoading();
+            
+            // 模拟API请求延迟
+            setTimeout(() => {
+                try {
+                    // 筛选与当前承运商相关且物流ID匹配的数据
+                    const filteredData = mockShipmentData.filter(item => 
+                        item.carrier === currentCarrierId && item.id === shipmentId
+                    );
+                    
+                    if (filteredData.length === 0) {
+                        showMessage('未找到匹配的物流信息', 'error');
+                        renderShipmentData([]);
+                    } else {
+                        showMessage(`找到 ${filteredData.length} 条匹配记录`);
+                        // 渲染搜索结果
+                        renderShipmentData(filteredData);
+                    }
+                } catch (error) {
+                    handleError('搜索失败，请稍后重试');
+                } finally {
+                    hideLoading();
+                }
+            }, 500);
+        }
+        
+        // 按用户ID搜索
+        function searchByUserId() {
+            const searchInput = document.getElementById('searchInput');
+            const userId = searchInput.value.trim();
+            
+            if (!userId) {
+                showMessage('请输入用户ID', 'error');
+                return;
+            }
+            
+            showLoading();
+            
+            // 模拟API请求延迟
+            setTimeout(() => {
+                try {
+                    // 筛选与当前承运商相关且用户ID匹配的数据
+                    const filteredData = mockShipmentData.filter(item => 
+                        item.carrier === currentCarrierId && item.user_id === userId
+                    );
+                    
+                    if (filteredData.length === 0) {
+                        showMessage('未找到匹配的物流信息', 'error');
+                        renderShipmentData([]);
+                    } else {
+                        showMessage(`找到 ${filteredData.length} 条匹配记录`);
+                        // 渲染搜索结果
+                        renderShipmentData(filteredData);
+                    }
+                } catch (error) {
+                    handleError('搜索失败，请稍后重试');
+                } finally {
+                    hideLoading();
+                }
+            }, 500);
+        }
+        
+        // 清空搜索并显示所有物流信息
+        function clearSearchAndShowAll() {
+            const searchInput = document.getElementById('searchInput');
+            searchInput.value = '';
+            
+            // 显示当前承运商的所有物流信息
+            loadCarrierShipments();
+        }
+        
+        // 打开更新状态模态框
+        function openUpdateStatusModal(shipmentId) {
+            // 查找对应的物流信息
+            const shipment = mockShipmentData.find(item => item.id === shipmentId);
+            if (!shipment) {
+                handleError('找不到指定的物流信息');
+                return;
+            }
+            
+            // 填充模态框数据
+            document.getElementById('shipmentIdDisplay').textContent = shipment.id;
+            const statusInput = document.getElementById('statusInput');
+            statusInput.value = getStatusDisplay(shipment.status).text;
+            statusInput.focus();
+            
+            // 保存当前物流ID到模态框元素上，以便更新时使用
+            const modal = document.getElementById('updateStatusModal');
+            modal.dataset.shipmentId = shipmentId;
+            
+            // 显示模态框
+            modal.style.display = 'block';
+        }
+        
+        // 关闭更新状态模态框
+        function closeUpdateModal() {
+            document.getElementById('updateStatusModal').style.display = 'none';
+        }
+        
+        // 更新物流状态
+        function updateShipmentStatus() {
+            const modal = document.getElementById('updateStatusModal');
+            const shipmentId = modal.dataset.shipmentId;
+            const newStatusText = document.getElementById('statusInput').value.trim();
+            
+            if (!newStatusText) {
+                showMessage('请输入物流状态', 'error');
+                return;
+            }
+            
+            // 模拟API调用更新状态
+            showLoading();
+            
+            setTimeout(() => {
+                try {
+                    // 在实际应用中，这里应该是API调用
+                    // 这里我们只是简单地更新本地数据
+                    const shipmentIndex = mockShipmentData.findIndex(item => item.id === shipmentId);
+                    if (shipmentIndex !== -1) {
+                        // 简单的状态映射
+                        let statusKey = 'active'; // 默认状态
+                        if (newStatusText.includes('待')) statusKey = 'pending';
+                        else if (newStatusText.includes('完')) statusKey = 'completed';
+                        else if (newStatusText.includes('取')) statusKey = 'cancelled';
+                        
+                        mockShipmentData[shipmentIndex].status = statusKey;
+                        mockShipmentData[shipmentIndex].update_time = new Date().toLocaleString();
+                        
+                        // 重新加载数据
+                        loadCarrierShipments();
+                        showMessage('物流状态更新成功');
+                    } else {
+                        handleError('找不到指定的物流信息');
+                    }
+                } catch (error) {
+                    handleError('更新物流状态失败');
+                } finally {
+                    hideLoading();
+                    closeUpdateModal();
+                }
+            }, 800);
+        }
+        
+        // 初始化函数
+        function init() {
+            updateUserInfoDisplay();
+            handleResponsiveLayout();
+            
+            // 绑定搜索按钮事件
+            const searchByShipmentBtn = document.getElementById('search-by-shipment-btn');
+            const searchByUserBtn = document.getElementById('search-by-user-btn');
+            const clearBtn = document.getElementById('clear-btn');
+            const searchInput = document.getElementById('search-input');
+            
+            if (searchByShipmentBtn) searchByShipmentBtn.addEventListener('click', searchByShipmentId);
+            if (searchByUserBtn) searchByUserBtn.addEventListener('click', searchByUserId);
+            if (clearBtn) clearBtn.addEventListener('click', clearSearchAndShowAll);
+            
+            // 绑定回车搜索事件
+            if (searchInput) {
+                searchInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        // 默认按物流ID搜索
+                        searchByShipmentId();
+                    }
+                });
+            }
+            
+            // 加载当前承运商的物流信息
+            loadCarrierShipments();
+        }
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
