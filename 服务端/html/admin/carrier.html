@@ -521,12 +521,12 @@
         }
         
         .btn-edit {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
             color: white;
         }
         
         .btn-edit:hover {
-            background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+            background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
             color: white;
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
@@ -964,15 +964,6 @@
                                            placeholder="请再次输入密码" required>
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="carrierInfo" class="form-label">
-                                        <i class="bi bi-info-circle"></i> 承运商信息
-                                    </label>
-                                    <input type="text" class="form-control" id="carrierInfo" name="info" 
-                                           placeholder="请输入承运商信息" required>
-                                </div>
-                            </div>
                         </div>
                     </form>
                 </div>
@@ -1077,6 +1068,25 @@
                 isSearching = false;
                 currentPage = page;
                 
+                // 模拟数据 - 替换API调用
+                const mockData = {
+                    code: 200,
+                    data: [
+                        { id: 'carrier001', name: '顺丰速运' },
+                        { id: 'carrier002', name: '中通快递' },
+                        { id: 'carrier003', name: '韵达快递' }
+                    ]
+                };
+                
+                // 模拟API响应延迟
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                allCarriers = mockData.data || [];
+                totalPages = Math.ceil(allCarriers.length / pageSize);
+                displayCarriers();
+                renderPagination();
+                
+                /* 注释掉实际API调用
                 const response = await fetch(`${API_BASE_URL}/list`);
                 const result = await response.json();
                 
@@ -1088,6 +1098,7 @@
                 } else {
                     showMessage('加载承运商列表失败: ' + (result.message || '未知错误'), 'error');
                 }
+                */
             } catch (error) {
                 console.error('加载承运商列表失败:', error);
                 showMessage('加载承运商列表失败，请检查网络连接', 'error');
@@ -1106,7 +1117,7 @@
             if (pageCarriers.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="5" class="text-center py-4">
+                        <td colspan="4" class="text-center py-4">
                             <i class="bi bi-inbox" style="font-size: 2rem; color: #ccc;"></i>
                             <div class="mt-2">暂无数据</div>
                         </td>
@@ -1120,7 +1131,6 @@
                     <td>${startIndex + index + 1}</td>
                     <td>${carrier.id || '-'}</td>
                     <td>${carrier.name || '-'}</td>
-                    <td>${carrier.info || '-'}</td>
                     <td>
                         <button class="btn action-btn btn-edit" onclick="editCarrierPassword('${carrier.id}', '${carrier.name}')">
                             <i class="bi bi-key"></i> 修改密码
@@ -1268,7 +1278,6 @@
             
             const name = formData.get('name');
             const passwd = formData.get('passwd');
-            const info = formData.get('info');
             const confirmPassword = document.getElementById('confirmCarrierPassword').value;
             
             if (passwd !== confirmPassword) {
@@ -1282,7 +1291,7 @@
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ name, passwd, info })
+                    body: JSON.stringify({ name, passwd })
                 });
                 
                 const result = await response.json();

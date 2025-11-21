@@ -51,13 +51,17 @@
             background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            padding: 25px 35px;
+            padding: 15px 35px;
             box-shadow: 
                 0 4px 6px -1px rgba(0, 0, 0, 0.1),
                 0 2px 4px -1px rgba(0, 0, 0, 0.06),
                 inset 0 1px 0 rgba(255, 255, 255, 0.6);
             border-bottom: 1px solid rgba(255, 255, 255, 0.3);
-            position: relative;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -82,7 +86,7 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            font-size: 2.2rem;
+            font-size: 1.8rem;
             font-weight: 700;
             margin: 0;
             display: flex;
@@ -116,6 +120,7 @@
         
         .content-area {
             padding: 30px;
+            padding-top: 100px;
         }
         
         .dashboard-card {
@@ -614,12 +619,6 @@
             <div class="top-bar">
                 <div class="left-section">
                     <h1>航运物流系统</h1>
-                    <nav aria-label="breadcrumb">
-                        <ol class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="#" style="text-decoration: none;">首页</a></li>
-                            <li class="breadcrumb-item active">物流管理</li>
-                        </ol>
-                    </nav>
                 </div>
                 <!-- 用户信息和退出按钮 -->
                 <div class="user-info-section">

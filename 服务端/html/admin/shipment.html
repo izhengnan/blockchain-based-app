@@ -458,19 +458,46 @@
             color: #27ae60;
         }
         
+        .search-input {
+            min-width: auto;
+        }
+        
+        /* 确保操作按钮有足够的空间 */
         .action-btn {
             border: none;
             border-radius: 10px;
             padding: 10px 18px;
             font-size: 0.85rem;
             font-weight: 500;
-            margin: 0 4px;
+            margin: 0 4px 5px 4px;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             overflow: hidden;
             letter-spacing: 0.025em;
+            min-width: 80px;
+            white-space: nowrap;
         }
         
+        /* 表格中的操作列样式 */
+        table td:last-child {
+            min-width: 180px;
+            white-space: nowrap;
+        }
+        
+        /* 响应式调整 */
+        @media (max-width: 768px) {
+            table td:last-child {
+                min-width: auto;
+                white-space: normal;
+            }
+            
+            .action-btn {
+                margin: 0 4px 5px 4px;
+                min-width: 70px;
+                font-size: 0.8rem;
+                padding: 0.375rem 0.5rem;
+            }
+        }
         .btn-edit {
             background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
             color: white;
@@ -722,7 +749,7 @@
                                     <th><i class="bi bi-building"></i> 货主名称</th>
                                     <th><i class="bi bi-truck"></i> 承运商名称</th>
                                     <th><i class="bi bi-box-seam"></i> 货物信息</th>
-                                    <th><i class="bi bi-gear"></i> 操作</th>
+                                    <th style="width: 120px;"><i class="bi bi-gear"></i> 操作</th>
                                 </tr>
                             </thead>
                             <tbody id="shipmentTableBody">
@@ -888,6 +915,25 @@
                 isSearching = false;
                 currentPage = page;
                 
+                // 模拟数据 - 替换API调用
+                const mockData = {
+                    code: 200,
+                    data: [
+                        { id: '1', logisticsId: 'SF1234567890', shipperName: '阿里巴巴物流', carrierName: '顺丰速运', cargoInfo: '电子设备' },
+                        { id: '2', logisticsId: 'YT9876543210', shipperName: '京东物流', carrierName: '圆通速递', cargoInfo: '家居用品' },
+                        { id: '3', logisticsId: 'ZT6543219870', shipperName: '拼多多供应链', carrierName: '中通快递', cargoInfo: '服装鞋帽' }
+                    ]
+                };
+                
+                // 模拟API响应延迟
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                allShipments = mockData.data || [];
+                totalPages = Math.ceil(allShipments.length / pageSize);
+                displayShipments();
+                renderPagination();
+                
+                /* 注释掉实际API调用
                 const response = await fetch(`${API_BASE_URL}/list`);
                 const result = await response.json();
                 
@@ -899,6 +945,7 @@
                 } else {
                     showMessage('加载运单列表失败: ' + (result.message || '未知错误'), 'error');
                 }
+                */
             } catch (error) {
                 console.error('加载运单列表失败:', error);
                 showMessage('加载运单列表失败，请检查网络连接', 'error');
