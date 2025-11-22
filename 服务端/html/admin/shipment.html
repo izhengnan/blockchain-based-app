@@ -1084,7 +1084,7 @@
                 const response = await fetch(`${API_BASE_URL}/list`);
                 const result = await response.json();
                 
-                if (result.code === 200) {
+                if (result.code === '0') {
                     allShipments = result.data || [];
                     totalPages = Math.ceil(allShipments.length / pageSize);
                     displayShipments();
@@ -1271,7 +1271,7 @@
                 const response = await fetch(`${API_BASE_URL}/getById?id=${logisticsId}`);
                 const result = await response.json();
                 
-                if (result.code === 200) {
+                if (result.code === '0') {
                     allShipments = result.data ? [result.data] : [];
                     currentPage = 1;
                     totalPages = 1;
@@ -1326,7 +1326,7 @@
                 
                 const result = await response.json();
                 
-                if (result.code === 200) {
+                if (result.code === '0') {
                     showMessage('运单添加成功', 'success');
                     // 关闭模态框
                     const modal = bootstrap.Modal.getInstance(document.getElementById('addShipmentModal'));
@@ -1400,7 +1400,7 @@
                 
                 const result = await response.json();
                 
-                if (result.code === 200) {
+                if (result.code === '0') {
                     showMessage('运单更新成功', 'success');
                     // 关闭模态框
                     const modal = bootstrap.Modal.getInstance(document.getElementById('updateShipmentModal'));
@@ -1429,7 +1429,7 @@
             })
             .then(response => response.json())
             .then(result => {
-                if (result.code === 200) {
+                if (result.code === '0') {
                     showMessage('运单删除成功', 'success');
                     loadShipmentList(currentPage);
                 } else {

@@ -454,20 +454,51 @@
                     messageDiv.textContent = '登录成功！正在跳转...';
                     messageDiv.style.display = 'block';
                     
+                    // 从后端返回的数据中获取登录信息
+                    const loginInfo = data.data;
+                    
                     // 存储登录类型和用户信息到本地存储
                     localStorage.setItem('currentLoginType', currentLoginType);
-                    localStorage.setItem('userId', userId);
+                    
+                    // 存储token（如果存在）
+                    if (loginInfo && loginInfo.token) {
+                        localStorage.setItem('token', loginInfo.token);
+                        console.log('已存储token:', loginInfo.token);
+                        
+                        // 存储完整的loginInfo对象
+                        localStorage.setItem('loginInfo', JSON.stringify(loginInfo));
+                        console.log('已存储完整loginInfo对象:', loginInfo);
+                        
+                        // 存储正确的userId（来自后端返回的LoginInfo对象）
+                        if (loginInfo.userId) {
+                            localStorage.setItem('userId', loginInfo.userId.toString());
+                            console.log('已存储用户ID:', loginInfo.userId.toString());
+                        } else {
+                            // 对于承运商登录，不回退到使用名称作为ID，避免类型转换错误
+                            if (currentLoginType === 'carrier') {
+                                console.error('警告：后端未返回承运商ID，无法存储有效的ID');
+                                localStorage.setItem('userId', '0'); // 设置默认值
+                            } else {
+                                // 对于其他用户类型，仍然可以使用输入的ID
+                                localStorage.setItem('userId', userId);
+                                console.log('使用输入的用户ID:', userId);
+                            }
+                        }
+                    } else {
+                        // 如果没有token，仍然存储用户输入的userId
+                        localStorage.setItem('userId', userId);
+                    }
                     
                     // 成功后延迟跳转（根据登录类型跳转到不同页面）
                     setTimeout(() => {
                         switch(currentLoginType) {
                             case 'user':
-                                // window.location.href = 'user-dashboard.html';
-                                console.log('用户登录成功，跳转到用户仪表板');
+                                window.location.href = 'shippers.html';
+                                console.log('货主登录成功，跳转到shippers.html');
                                 break;
                             case 'carrier':
-                                // window.location.href = 'carrier-dashboard.html';
-                                console.log('承运商登录成功，跳转到承运商仪表板');
+                                window.location.href = 'carrier.html';
+                                console.log('承运商登录成功，跳转到carrier.html');
                                 break;
                             case 'admin':
                                 window.location.href = 'admin/admin.html';

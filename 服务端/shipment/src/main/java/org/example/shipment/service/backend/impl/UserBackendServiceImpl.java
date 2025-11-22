@@ -15,7 +15,11 @@ import org.springframework.stereotype.Service;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import org.example.shipment.dto.LoginInfo;
+import org.example.shipment.utils.JwtUtils;
 
 @Slf4j
 @Service
@@ -37,12 +41,31 @@ public class UserBackendServiceImpl implements UserBackendService {
     }
 
     @Override
-    public boolean checkUser(BigInteger id, String passwd) throws ContractException {
+    public LoginInfo checkUser(BigInteger id, String passwd) throws ContractException {
         log.info("checkUser: id:{},passwd:{}", id, passwd);
         Shipment1118 shipment = Shipment1118.load(contractAddress,client,client.getCryptoSuite().getCryptoKeyPair());
-        Boolean transactionReceipt = shipment.checkUser(new BigInteger(String.valueOf(id)),passwd);
-        return transactionReceipt;
-
+        Boolean isValid = shipment.checkUser(new BigInteger(String.valueOf(id)),passwd);
+        
+        if (isValid) {
+            // 获取用户详细信息
+            User user = getUserById(id);
+            
+            // 构建JWT声明
+            Map<String, Object> claims = new HashMap<>();
+            claims.put("id", id.toString());
+            claims.put("name", user.getName());
+            claims.put("userType", "user");
+            
+            // 生成令牌
+            String token = JwtUtils.generateJwt(claims);
+            
+            // 构建并返回LoginInfo对象
+            return new LoginInfo(token, user.getName(), null, id, "user");
+        } else {
+            // 用户验证失败，返回null
+            log.warn("用户验证失败: id:{}", id);
+            return null;
+        }
     }
 
     @Override

@@ -47,6 +47,37 @@
             padding: 0;
         }
         
+        /* 状态按钮组样式 */
+        .status-buttons-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 8px;
+        }
+        
+        .status-button {
+            padding: 8px 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #fff;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 14px;
+        }
+        
+        .status-button:hover {
+            border-color: #007bff;
+            background-color: #f8f9fa;
+        }
+        
+        .status-button.active,
+        .status-button-active {
+            background-color: #007bff;
+            color: #fff;
+            border-color: #007bff;
+        }
+        
         .top-bar {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(20px);
@@ -801,8 +832,14 @@
                     <span id="shipmentIdDisplay" class="form-value"></span>
                 </div>
                 <div class="form-group">
-                    <label for="statusInput">请输入物流最新状态:</label>
-                    <input type="text" id="statusInput" placeholder="例如: 运输中、已完成、待处理等">
+                    <label>请选择物流最新状态:</label>
+                    <div id="statusButtons" class="status-buttons-group">
+                        <button type="button" data-status="pending" class="status-button">待揽收</button>
+                        <button type="button" data-status="active" class="status-button">进行中</button>
+                        <button type="button" data-status="completed" class="status-button">已完成</button>
+                        <button type="button" data-status="cancelled" class="status-button">已取消</button>
+                    </div>
+                    <input type="hidden" id="statusInput" value="pending">
                 </div>
             </div>
             <div class="modal-footer">
@@ -813,26 +850,75 @@
     </div>
     
     <script>
-        // 当前登录的承运商ID（实际应用中应从登录状态获取）
-        const currentCarrierId = 'CAR001';
+        // 当前登录的承运商ID，从localStorage获取
+        let currentCarrierId = '';
         
         // 退出登录功能
         function logout() {
             if (confirm('确定要退出登录吗？')) {
-                // 这里可以添加实际的退出登录逻辑
+                // 清除localStorage中的登录信息
+                localStorage.removeItem('currentLoginType');
+                localStorage.removeItem('userId');
+                localStorage.removeItem('token');
+                localStorage.removeItem('loginInfo');
                 alert('已退出登录');
-                // 实际应用中可以重定向到登录页面
-                // window.location.href = 'login.html';
+                // 重定向到登录页面
+                window.location.href = 'login.html';
             }
+        }
+        
+        // 检查登录状态函数
+        function checkLoginStatus() {
+            // 检查localStorage中是否存在登录信息
+            const userId = localStorage.getItem('userId');
+            const token = localStorage.getItem('token');
+            const currentLoginType = localStorage.getItem('currentLoginType');
+            
+            console.log('登录检查 - userId:', userId, 'token:', !!token, 'loginType:', currentLoginType);
+            
+            // 如果没有登录信息或登录类型不是carrier，重定向到登录页面
+            if (!userId || !token || currentLoginType !== 'carrier') {
+                alert('请先登录');
+                window.location.href = 'login.html';
+                return false;
+            }
+            
+            // 验证userId是否为有效数字
+            const numericUserId = Number(userId);
+            if (isNaN(numericUserId) || numericUserId <= 0) {
+                console.error('无效的承运商ID格式:', userId);
+                alert('承运商ID格式无效，请重新登录');
+                window.location.href = 'login.html';
+                return false;
+            }
+            
+            // 设置当前承运商ID
+            window.currentCarrierId = userId; // 保存为字符串，后续转换为数字
+            console.log('设置承运商ID成功:', window.currentCarrierId);
+            return true;
         }
         
         // 更新用户信息显示
         function updateUserInfoDisplay() {
             const usernameElement = document.querySelector('.username');
             if (usernameElement) {
-                // 从mockCarrierData中获取承运商名称
-                const carrierName = mockCarrierData[currentCarrierId] ? mockCarrierData[currentCarrierId].name : '承运商';
-                usernameElement.textContent = carrierName;
+                // 尝试从localStorage获取loginInfo对象
+                let displayName = window.currentCarrierId; // 默认使用ID作为备用
+                
+                try {
+                    const loginInfoStr = localStorage.getItem('loginInfo');
+                    if (loginInfoStr) {
+                        const loginInfo = JSON.parse(loginInfoStr);
+                        // 如果存在name字段，则使用name作为显示名称
+                        if (loginInfo.name) {
+                            displayName = loginInfo.name;
+                        }
+                    }
+                } catch (error) {
+                    console.error('解析loginInfo失败:', error);
+                }
+                
+                usernameElement.textContent = displayName;
             }
         }
         
@@ -843,7 +929,7 @@
             
             // 预填充承运商ID为当前登录的承运商
             if (carrierInput) {
-                carrierInput.value = currentCarrierId;
+                carrierInput.value = window.currentCarrierId;
             }
             
             if (modal) {
@@ -891,19 +977,21 @@
             // 显示加载中
             showLoading();
             
-            // 准备请求数据
+            // 准备请求数据，设置初始状态为待揽收(pending)
             const shipmentData = {
                 user_id: userId,
                 carrier: carrier,
                 from: from,
-                to: to
+                to: to,
+                status: 'pending' // 初始状态设置为待揽收
             };
             
             // 调用后端API
-            fetch('/shipment/add', {
+            fetch('http://localhost:8080/shipment/add', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
                 },
                 body: JSON.stringify(shipmentData)
             })
@@ -915,29 +1003,12 @@
             })
             .then(data => {
                 hideLoading();
-                if (data.code === '200' || data.success) {
+                if (data.code === '0' || data.success) {
                     showMessage('运单添加成功');
                     closeAddModal();
                     
-                    // 创建一个新的运单对象并添加到mock数据中（模拟后端返回）
-                    const now = new Date();
-                    const formattedDate = now.toLocaleString('zh-CN');
-                    const newShipment = {
-                        id: 'SHIP' + (10000 + Math.floor(Math.random() * 90000)),
-                        user_id: userId,
-                        carrier: carrier,
-                        status: 'pending',
-                        from_address: from,
-                        to_address: to,
-                        create_time: formattedDate,
-                        update_time: formattedDate
-                    };
-                    
-                    // 将新运单添加到mock数据中
-                    mockShipmentData.push(newShipment);
-                    
-                    // 重新渲染运单列表
-                    renderShipmentData(mockShipmentData);
+                    // 重新加载所有数据，从后端获取最新信息
+                    loadCarrierShipments();
                 } else {
                     showMessage('添加失败: ' + (data.message || '未知错误'), 'error');
                 }
@@ -973,8 +1044,8 @@
         // 监听窗口大小变化，调整布局
         window.addEventListener('resize', handleResponsiveLayout);
         
-        // 模拟承运商数据（实际应用中应从后端API获取）
-        const mockCarrierData = {
+        // 模拟承运商数据已注释，使用真实API获取
+        /* const mockCarrierData = {
             'CAR001': {
                 id: 'CAR001',
                 name: '顺丰速运',
@@ -993,10 +1064,10 @@
                 contact: '王总',
                 phone: '95554'
             }
-        };
+        }; */
         
-        // 模拟物流数据（实际应用中应从后端API获取）
-        const mockShipmentData = [
+        // 模拟物流数据已注释，使用真实API获取
+        /* const mockShipmentData = [
             {
                 id: 'SHIP001',
                 user_id: 'USER001',
@@ -1117,19 +1188,52 @@
                 create_time: '2023-10-01 14:00:00',
                 update_time: '2023-10-01 14:00:00'
             }
-        ];
+        ]; */
         
         // 状态映射
         const statusMap = {
             active: { class: 'status-active', text: '进行中' },
-            pending: { class: 'status-pending', text: '待处理' },
+            pending: { class: 'status-pending', text: '待揽收' },
             completed: { class: 'status-completed', text: '已完成' },
             cancelled: { class: 'status-cancelled', text: '已取消' }
         };
         
-        // 获取状态显示信息
+        // 获取状态显示信息，增强处理未知状态的能力
         function getStatusDisplay(status) {
-            return statusMap[status] || { class: 'status-unknown', text: '未知状态' };
+            console.log('getStatusDisplay called with status:', status);
+            // 如果状态为空或未定义，默认为待揽收
+            if (!status || status.trim() === '') {
+                return statusMap.pending;
+            }
+            
+            // 尝试直接匹配状态映射（注意：JavaScript对象键是区分大小写的）
+            const directMatch = statusMap[status];
+            if (directMatch) {
+                return directMatch;
+            }
+            
+            // 尝试不区分大小写匹配状态键
+            const lowerStatus = status.toLowerCase();
+            for (const key in statusMap) {
+                if (key.toLowerCase() === lowerStatus) {
+                    return statusMap[key];
+                }
+            }
+            
+            // 尝试文本内容匹配
+            if (lowerStatus.includes('pending') || lowerStatus.includes('待揽收')) {
+                return statusMap.pending;
+            } else if (lowerStatus.includes('active') || lowerStatus.includes('进行中') || lowerStatus.includes('运输中')) {
+                return statusMap.active;
+            } else if (lowerStatus.includes('completed') || lowerStatus.includes('已完成')) {
+                return statusMap.completed;
+            } else if (lowerStatus.includes('cancelled') || lowerStatus.includes('已取消')) {
+                return statusMap.cancelled;
+            }
+            
+            // 如果都匹配不到，返回原始状态值而不是未知状态
+            console.log('No match found for status:', status, 'returning original');
+            return { class: 'status-custom', text: status };
         }
         
         // 格式化日期时间
@@ -1235,10 +1339,10 @@
                 row.innerHTML = `
                     <td>${item.id}</td>
                     <td>${item.user_id}</td>
-                    <td title="${item.from_address}">${formatAddress(item.from_address)}</td>
-                    <td title="${item.to_address}">${formatAddress(item.to_address)}</td>
-                    <td>${formatDateTime(item.create_time)}</td>
-                    <td>${formatDateTime(item.update_time)}</td>
+                    <td title="${item.from}">${formatAddress(item.from)}</td>
+                    <td title="${item.to}">${formatAddress(item.to)}</td>
+                    <td>${formatDateTime(item.createTime)}</td>
+                    <td>${formatDateTime(item.updateTime)}</td>
                     <td>
                         <span class="status-badge ${statusInfo.class}">${statusInfo.text}</span>
                     </td>
@@ -1311,28 +1415,65 @@
         function loadCarrierShipments() {
             showLoading();
             
-            // 模拟API请求延迟
-            setTimeout(() => {
-                try {
-                    // 筛选与当前承运商相关的数据
-                    const filteredData = mockShipmentData.filter(item => 
-                        item.carrier === currentCarrierId
-                    );
-                    
-                    // 按更新时间倒序排序
-                    filteredData.sort((a, b) => {
-                        return new Date(b.update_time) - new Date(a.update_time);
-                    });
-                    
-                    // 渲染数据
-                    renderShipmentData(filteredData);
-                    showMessage(`共加载 ${filteredData.length} 条物流信息`);
-                } catch (error) {
-                    handleError('加载物流信息失败，请稍后重试');
-                } finally {
-                    hideLoading();
+            // 首先验证全局变量是否存在
+            if (!window.currentCarrierId) {
+                hideLoading();
+                showMessage('未找到承运商ID信息，请重新登录', 'error');
+                console.error('未找到承运商ID信息');
+                return;
+            }
+            
+            // 确保carrierId是有效的数字类型
+            const numericCarrierId = Number(window.currentCarrierId);
+            console.log('加载运单 - 原始carrierId:', window.currentCarrierId, '转换后数字ID:', numericCarrierId);
+            
+            if (isNaN(numericCarrierId) || numericCarrierId <= 0) {
+                hideLoading();
+                showMessage('无效的承运商ID: ' + window.currentCarrierId, 'error');
+                console.error('无效的承运商ID:', window.currentCarrierId);
+                return;
+            }
+            
+            fetch(`http://localhost:8080/shipment/getByCarrierId?carrierId=${numericCarrierId}`, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
-            }, 300);
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('网络响应错误');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    try {
+                        // 从CommonResponse中提取实际数据
+                        const shipmentData = data.data || [];
+                        // 按更新时间倒序排序
+                        if (Array.isArray(shipmentData)) {
+                            shipmentData.sort((a, b) => {
+                                return new Date(b.updateTime) - new Date(a.updateTime);
+                            });
+                            
+                            // 渲染数据
+                            renderShipmentData(shipmentData);
+                            showMessage(`共加载 ${shipmentData.length} 条物流信息`);
+                        } else {
+                            // 处理非数组响应
+                            renderShipmentData([]);
+                            showMessage('未获取到有效的物流数据', 'error');
+                        }
+                    } catch (error) {
+                        handleError('处理数据失败，请稍后重试');
+                    } finally {
+                        hideLoading();
+                    }
+                })
+                .catch(error => {
+                    hideLoading();
+                    console.error('加载物流信息失败:', error);
+                    showMessage('加载物流信息失败，请稍后重试', 'error');
+                });
         }
         
         // 按物流ID搜索
@@ -1347,28 +1488,56 @@
             
             showLoading();
             
-            // 模拟API请求延迟
-            setTimeout(() => {
-                try {
-                    // 筛选与当前承运商相关且物流ID匹配的数据
-                    const filteredData = mockShipmentData.filter(item => 
-                        item.carrier === currentCarrierId && item.id === shipmentId
-                    );
-                    
-                    if (filteredData.length === 0) {
-                        showMessage('未找到匹配的物流信息', 'error');
-                        renderShipmentData([]);
-                    } else {
-                        showMessage(`找到 ${filteredData.length} 条匹配记录`);
-                        // 渲染搜索结果
-                        renderShipmentData(filteredData);
-                    }
-                } catch (error) {
-                    handleError('搜索失败，请稍后重试');
-                } finally {
-                    hideLoading();
+            // 调用后端API搜索物流信息，确保id是数字类型
+            const numericShipmentId = Number(shipmentId);
+            if (isNaN(numericShipmentId)) {
+                hideLoading();
+                showMessage('无效的物流ID', 'error');
+                return;
+            }
+            fetch(`http://localhost:8080/shipment/getById?id=${numericShipmentId}`, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
-            }, 500);
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('网络响应错误');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    try {
+                        // 从CommonResponse中提取实际数据
+                        const actualData = data.data || {};
+                        // 检查是否为数组类型
+                        const resultArray = Array.isArray(actualData) ? actualData : (actualData ? [actualData] : []);
+                        
+                        // 筛选与当前承运商相关的数据，确保类型匹配
+                        const numericCarrierId = Number(window.currentCarrierId);
+                        const filteredData = resultArray.filter(item => 
+                            Number(item.carrier) === numericCarrierId
+                        );
+                        
+                        if (filteredData.length === 0) {
+                            showMessage('未找到匹配的物流信息', 'error');
+                            renderShipmentData([]);
+                        } else {
+                            showMessage(`找到 ${filteredData.length} 条匹配记录`);
+                            // 渲染搜索结果
+                            renderShipmentData(filteredData);
+                        }
+                    } catch (error) {
+                        handleError('处理搜索结果失败，请稍后重试');
+                    } finally {
+                        hideLoading();
+                    }
+                })
+                .catch(error => {
+                    hideLoading();
+                    console.error('搜索失败:', error);
+                    showMessage('搜索失败，请稍后重试', 'error');
+                });
         }
         
         // 按用户ID搜索
@@ -1383,28 +1552,56 @@
             
             showLoading();
             
-            // 模拟API请求延迟
-            setTimeout(() => {
-                try {
-                    // 筛选与当前承运商相关且用户ID匹配的数据
-                    const filteredData = mockShipmentData.filter(item => 
-                        item.carrier === currentCarrierId && item.user_id === userId
-                    );
-                    
-                    if (filteredData.length === 0) {
-                        showMessage('未找到匹配的物流信息', 'error');
-                        renderShipmentData([]);
-                    } else {
-                        showMessage(`找到 ${filteredData.length} 条匹配记录`);
-                        // 渲染搜索结果
-                        renderShipmentData(filteredData);
-                    }
-                } catch (error) {
-                    handleError('搜索失败，请稍后重试');
-                } finally {
-                    hideLoading();
+            // 调用后端API搜索物流信息，确保userId是数字类型
+            const numericUserId = Number(userId);
+            if (isNaN(numericUserId)) {
+                hideLoading();
+                showMessage('无效的用户ID', 'error');
+                return;
+            }
+            fetch(`http://localhost:8080/shipment/getByUserId?userId=${numericUserId}`, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
-            }, 500);
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('网络响应错误');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    try {
+                        // 从CommonResponse中提取实际数据
+                        const actualData = data.data || [];
+                        // 检查是否为数组类型
+                        const resultArray = Array.isArray(actualData) ? actualData : (actualData ? [actualData] : []);
+                        
+                        // 筛选与当前承运商相关的数据，确保类型匹配
+                        const numericCarrierId = Number(window.currentCarrierId);
+                        const filteredData = resultArray.filter(item => 
+                            Number(item.carrier) === numericCarrierId
+                        );
+                        
+                        if (filteredData.length === 0) {
+                            showMessage('未找到匹配的物流信息', 'error');
+                            renderShipmentData([]);
+                        } else {
+                            showMessage(`找到 ${filteredData.length} 条匹配记录`);
+                            // 渲染搜索结果
+                            renderShipmentData(filteredData);
+                        }
+                    } catch (error) {
+                        handleError('处理搜索结果失败，请稍后重试');
+                    } finally {
+                        hideLoading();
+                    }
+                })
+                .catch(error => {
+                    hideLoading();
+                    console.error('搜索失败:', error);
+                    showMessage('搜索失败，请稍后重试', 'error');
+                });
         }
         
         // 清空搜索并显示所有物流信息
@@ -1418,25 +1615,114 @@
         
         // 打开更新状态模态框
         function openUpdateStatusModal(shipmentId) {
-            // 查找对应的物流信息
-            const shipment = mockShipmentData.find(item => item.id === shipmentId);
-            if (!shipment) {
-                handleError('找不到指定的物流信息');
+            showLoading();
+            
+            // 调用后端API获取物流详情，确保id是数字类型
+            const numericShipmentId = Number(shipmentId);
+            if (isNaN(numericShipmentId)) {
+                hideLoading();
+                showMessage('无效的物流ID', 'error');
                 return;
             }
-            
-            // 填充模态框数据
-            document.getElementById('shipmentIdDisplay').textContent = shipment.id;
-            const statusInput = document.getElementById('statusInput');
-            statusInput.value = getStatusDisplay(shipment.status).text;
-            statusInput.focus();
-            
-            // 保存当前物流ID到模态框元素上，以便更新时使用
-            const modal = document.getElementById('updateStatusModal');
-            modal.dataset.shipmentId = shipmentId;
-            
-            // 显示模态框
-            modal.style.display = 'block';
+            fetch(`http://localhost:8080/shipment/getById?id=${numericShipmentId}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('网络响应错误');
+                    }
+                    return response.json();
+                })
+                .then(shipment => {
+                    hideLoading();
+                    if (!shipment) {
+                        handleError('找不到指定的物流信息');
+                        return;
+                    }
+                    
+                    // // 验证是否属于当前承运商
+                    // if (shipment.carrier !== currentCarrierId) {
+                    //     showMessage('无权操作此物流信息', 'error');
+                    //     return;
+                    // }
+                    
+                    // 填充模态框数据
+                    const shipmentIdDisplay = document.getElementById('shipmentIdDisplay');
+                    shipmentIdDisplay.textContent = shipment.id;
+                    
+                    // 确保物流ID正确显示
+                    if (!shipmentIdDisplay.textContent) {
+                        shipmentIdDisplay.textContent = shipment.id || shipmentId;
+                    }
+                    
+                    const statusInput = document.getElementById('statusInput');
+                    // 尝试获取状态值，考虑不同的字段名
+                    let shipmentStatus = shipment.status || shipment.statusCd || shipment.statusCode || '';
+                    console.log('Current shipment status:', shipmentStatus, 'Raw shipment object:', shipment);
+                    
+                    // 获取状态显示信息
+                    let displayStatus = getStatusDisplay(shipmentStatus);
+                    console.log('Calculated display status:', displayStatus);
+                    
+                    // 确保获取到正确的显示文本
+                    const statusText = displayStatus && displayStatus.text ? displayStatus.text : shipmentStatus || '';
+                    console.log('Setting status input value to:', statusText);
+                    
+                    // 设置隐藏输入框的值为当前状态的键
+                    // 将显示文本映射回状态键
+                    const statusTextToKey = {
+                        '待揽收': 'pending',
+                        '进行中': 'active',
+                        '已完成': 'completed',
+                        '已取消': 'cancelled'
+                    };
+                    
+                    // 默认状态键
+                    let currentStatusKey = statusTextToKey[statusText] || 'pending';
+                    statusInput.value = currentStatusKey;
+                    
+                    // 保存当前物流ID到模态框元素上，以便更新时使用
+                    const modal = document.getElementById('updateStatusModal');
+                    modal.dataset.shipmentId = shipmentId;
+                    
+                    // 显示模态框
+                    modal.style.display = 'block';
+                    
+                    // 为状态按钮添加点击事件监听器
+                    setTimeout(() => {
+                        const statusButtons = document.querySelectorAll('.status-button');
+                        
+                        // 为每个按钮添加点击事件
+                                statusButtons.forEach(button => {
+                                    // 先移除之前可能存在的事件监听器，避免重复绑定
+                                    const newButton = button.cloneNode(true);
+                                    button.parentNode.replaceChild(newButton, button);
+                                    
+                                    newButton.addEventListener('click', () => {
+                                        // 移除所有按钮的选中状态
+                                        document.querySelectorAll('.status-button').forEach(btn => btn.classList.remove('status-button-active'));
+                                        
+                                        // 为当前点击的按钮添加选中状态
+                                        newButton.classList.add('status-button-active');
+                                        
+                                        // 更新隐藏输入框的值为按钮对应的状态键
+                                        const buttonKey = newButton.dataset.status;
+                                        statusInput.value = buttonKey;
+                                        console.log('Status updated to:', buttonKey);
+                                    });
+                                    
+                                    // 根据当前物流状态设置初始选中的按钮
+                                    if (newButton.dataset.status === currentStatusKey) {
+                                        newButton.classList.add('status-button-active');
+                                    } else {
+                                        newButton.classList.remove('status-button-active');
+                                    }
+                                });
+                    }, 100);
+                })
+                .catch(error => {
+                    hideLoading();
+                    console.error('获取物流信息失败:', error);
+                    handleError('获取物流信息失败，请稍后重试');
+                });
         }
         
         // 关闭更新状态模态框
@@ -1448,48 +1734,73 @@
         function updateShipmentStatus() {
             const modal = document.getElementById('updateStatusModal');
             const shipmentId = modal.dataset.shipmentId;
-            const newStatusText = document.getElementById('statusInput').value.trim();
+            const statusKey = document.getElementById('statusInput').value;
             
-            if (!newStatusText) {
-                showMessage('请输入物流状态', 'error');
+            // 验证状态是否为有效的选项
+            const validStatuses = ['pending', 'active', 'completed', 'cancelled'];
+            if (!validStatuses.includes(statusKey)) {
+                showMessage('无效的物流状态', 'error');
                 return;
             }
             
-            // 模拟API调用更新状态
+            // 调用后端API更新状态
             showLoading();
             
-            setTimeout(() => {
-                try {
-                    // 在实际应用中，这里应该是API调用
-                    // 这里我们只是简单地更新本地数据
-                    const shipmentIndex = mockShipmentData.findIndex(item => item.id === shipmentId);
-                    if (shipmentIndex !== -1) {
-                        // 简单的状态映射
-                        let statusKey = 'active'; // 默认状态
-                        if (newStatusText.includes('待')) statusKey = 'pending';
-                        else if (newStatusText.includes('完')) statusKey = 'completed';
-                        else if (newStatusText.includes('取')) statusKey = 'cancelled';
-                        
-                        mockShipmentData[shipmentIndex].status = statusKey;
-                        mockShipmentData[shipmentIndex].update_time = new Date().toLocaleString();
-                        
-                        // 重新加载数据
-                        loadCarrierShipments();
-                        showMessage('物流状态更新成功');
-                    } else {
-                        handleError('找不到指定的物流信息');
-                    }
-                } catch (error) {
-                    handleError('更新物流状态失败');
-                } finally {
-                    hideLoading();
-                    closeUpdateModal();
+            // 确保参数是数字类型
+            const numericShipmentId = Number(shipmentId);
+            const numericCarrierId = Number(window.currentCarrierId);
+            if (isNaN(numericShipmentId) || isNaN(numericCarrierId)) {
+                hideLoading();
+                closeUpdateModal();
+                showMessage('无效的ID参数', 'error');
+                return;
+            }
+            
+            fetch('http://localhost:8080/shipment/update', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({
+                    id: numericShipmentId,
+                    status: statusKey,
+                    carrierId: numericCarrierId
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('网络响应错误');
                 }
-            }, 800);
+                return response.json();
+            })
+            .then(data => {
+                hideLoading();
+                closeUpdateModal();
+                
+                if (data.code === '0' || data.success) {
+                    // 重新加载数据
+                    loadCarrierShipments();
+                    showMessage('物流状态更新成功');
+                } else {
+                    showMessage('更新失败: ' + (data.message || '未知错误'), 'error');
+                }
+            })
+            .catch(error => {
+                hideLoading();
+                closeUpdateModal();
+                console.error('更新物流状态失败:', error);
+                showMessage('更新物流状态失败，请稍后重试', 'error');
+            });
         }
         
         // 初始化函数
         function init() {
+            // 先检查登录状态
+            if (!checkLoginStatus()) {
+                return; // 如果未登录，直接返回，不继续初始化
+            }
+            
             updateUserInfoDisplay();
             handleResponsiveLayout();
             

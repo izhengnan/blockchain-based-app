@@ -1,6 +1,7 @@
 package org.example.shipment.controller;
 
 import org.example.shipment.dto.Carrier;
+import org.example.shipment.dto.LoginInfo;
 import org.example.shipment.model.CommonResponse;
 import org.example.shipment.service.backend.CarrierBackendService;
 import org.fisco.bcos.sdk.transaction.model.exception.ContractException;
@@ -17,6 +18,7 @@ public class CarrierController {
     private CarrierBackendService carrierBackendService;
 
     //注册
+    @CrossOrigin
     @PostMapping("/add")
     public CommonResponse AddCarrier(@RequestBody Carrier carrier){
         boolean res = carrierBackendService.addCarrier(carrier.getName(), carrier.getInfo(), carrier.getPasswd());
@@ -26,11 +28,12 @@ public class CarrierController {
         return CommonResponse.fail("401", new Exception("添加用户失败"));
     }
     //登录
+    @CrossOrigin
     @PostMapping("/check")
     public CommonResponse Check(@RequestBody Carrier carrier) throws ContractException {
-        boolean res = carrierBackendService.checkCarrier(carrier.getName(), carrier.getPasswd());
-        if(res) {
-            return CommonResponse.ok(res);
+        LoginInfo loginInfo = carrierBackendService.checkCarrier(carrier.getName(), carrier.getPasswd());
+        if(loginInfo != null) {
+            return CommonResponse.ok(loginInfo);
         }
         return CommonResponse.fail("401", new Exception("用户名或密码错误"));
     }

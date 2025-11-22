@@ -621,88 +621,30 @@
         // 退出登录功能
         function logout() {
             if (confirm('确定要退出登录吗？')) {
-                // 这里可以添加实际的退出登录逻辑
+                // 清除localStorage中的登录信息
+                localStorage.removeItem('currentLoginType');
+                localStorage.removeItem('userId');
+                localStorage.removeItem('token');
                 alert('已退出登录');
-                // 实际应用中可以重定向到登录页面
-                // window.location.href = 'login.html';
+                // 重定向到登录页面
+                window.location.href = 'login.html';
             }
         }
         
         // 当前登录的用户ID（实际应用中应从登录状态获取）
-        const currentUserId = 'shipper123';
+        // 从localStorage中获取用户ID（从LoginInfo中提取）
+        const currentUserId = localStorage.getItem('userId');
         
-        // 模拟承运商数据（实际应用中应从后端API获取）
-        const mockCarrierData = {
-            'CAR001': {
-                id: 'CAR001',
-                name: '顺丰速运',
-                contact: '张经理',
-                phone: '4008-111-111'
-            },
-            'CAR002': {
-                id: 'CAR002',
-                name: '中通快递',
-                contact: '李主管',
-                phone: '95311'
-            },
-            'CAR003': {
-                id: 'CAR003',
-                name: '圆通速递',
-                contact: '王总',
-                phone: '95554'
-            }
-        };
+        // 注释掉模拟数据，使用真实API调用
         
         // 根据承运商ID获取承运商名称
         function getCarrierName(carrierId) {
             if (!carrierId) return '-';
-            const carrier = mockCarrierData[carrierId];
-            return carrier ? carrier.name : carrierId; // 如果找不到名称，返回ID
+            // 直接返回承运商ID作为名称，避免依赖已删除的模拟数据
+            return carrierId;
         }
         
-        // 模拟物流数据（实际应用中应从后端API获取）
-        const mockShipmentData = [
-            {
-                id: 'SHIP001',
-                user_id: 'shipper123',
-                carrier: 'CAR001',
-                from: '上海市浦东新区',
-                to: '北京市海淀区',
-                status: 'active',
-                createTime: '2024-01-15 10:30:00',
-                updateTime: '2024-01-15 14:45:00'
-            },
-            {
-                id: 'SHIP002',
-                user_id: 'shipper123',
-                carrier: 'CAR002',
-                from: '广州市天河区',
-                to: '深圳市南山区',
-                status: 'pending',
-                createTime: '2024-01-14 09:15:00',
-                updateTime: '2024-01-14 09:15:00'
-            },
-            {
-                id: 'SHIP003',
-                user_id: 'shipper123',
-                carrier: 'CAR001',
-                from: '杭州市西湖区',
-                to: '成都市锦江区',
-                status: 'completed',
-                createTime: '2024-01-13 16:20:00',
-                updateTime: '2024-01-15 11:30:00'
-            },
-            {
-                id: 'SHIP004',
-                user_id: 'shipper123',
-                carrier: 'CAR003',
-                from: '南京市鼓楼区',
-                to: '武汉市江汉区',
-                status: 'active',
-                createTime: '2024-01-12 13:45:00',
-                updateTime: '2024-01-14 10:20:00'
-            }
-        ];
+        // 注释掉模拟数据，使用真实API调用
         
         // 显示加载指示器
         function showLoading() {
@@ -905,27 +847,47 @@
         function loadUserShipments() {
             showLoading();
             
-            // 模拟API请求延迟
-            setTimeout(() => {
-                try {
-                    // 实际应用中应该调用后端API
-                    // fetch(`/api/shipments/user/${currentUserId}`)
-                    //     .then(response => response.json())
-                    //     .then(data => {
-                    //         renderShipmentData(data);
-                    //         hideLoading();
-                    //     });
-                    
-                    // 使用模拟数据
-                    const userShipments = mockShipmentData.filter(item => item.user_id === currentUserId);
-                    renderShipmentData(userShipments);
+            try {
+                // 从localStorage重新获取用户ID（确保使用最新的登录信息）
+                const userIdFromStorage = localStorage.getItem('userId');
+                const userIdToUse = userIdFromStorage || currentUserId;
+                
+                // 调用后端API获取用户物流数据，确保userId是数字类型
+                const numericUserId = Number(userIdToUse);
+                if (isNaN(numericUserId)) {
                     hideLoading();
-                } catch (error) {
-                    console.error('加载物流数据失败:', error);
-                    showMessage('error', '加载物流数据失败，请稍后重试');
-                    hideLoading();
+                    showMessage('error', '无效的用户ID');
+                    console.error('用户ID无效:', userIdToUse);
+                    return;
                 }
-            }, 1000);
+                // 使用fetch API并添加Authorization头
+                fetch(`http://localhost:8080/shipment/getByUserId?userId=${numericUserId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('网络响应异常');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // 从响应对象中提取data字段，该字段包含实际的物流数据数组
+                        const shipmentData = data.data || [];
+                        renderShipmentData(shipmentData);
+                        hideLoading();
+                    })
+                    .catch(error => {
+                        console.error('加载物流数据失败:', error);
+                        showMessage('error', '加载物流数据失败，请稍后重试');
+                        hideLoading();
+                    });
+            } catch (error) {
+                console.error('加载物流数据失败:', error);
+                showMessage('error', '加载物流数据失败，请稍后重试');
+                hideLoading();
+            }
         }
         
         // 清空搜索并显示所有物流信息
@@ -948,46 +910,46 @@
             
             showLoading();
             
-            // 模拟API请求延迟
-            setTimeout(() => {
-                try {
-                    // 实际应用中应该调用后端API
-                    // fetch(`/api/shipments/${shipmentId}`)
-                    //     .then(response => {
-                    //         if (!response.ok) throw new Error('未找到物流信息');
-                    //         return response.json();
-                    //     })
-                    //     .then(data => {
-                    //         // 验证物流是否属于当前用户
-                    //         if (data.user_id === currentUserId) {
-                    //             renderShipmentData([data]);
-                    //         } else {
-                    //             renderShipmentData([]);
-                    //             showMessage('error', '未找到您的物流信息');
-                    //         }
-                    //         hideLoading();
-                    //     });
-                    
-                    // 使用模拟数据进行搜索
-                    const searchResult = mockShipmentData.filter(item => 
-                        item.id === shipmentId && item.user_id === currentUserId
-                    );
-                    
-                    renderShipmentData(searchResult);
-                    
-                    if (searchResult.length === 0) {
-                        showMessage('error', `未找到ID为 ${shipmentId} 的物流信息`);
-                    } else {
-                        showMessage('success', `找到 ${searchResult.length} 条物流信息`);
-                    }
-                    
+            try {
+                // 调用后端API根据ID查询物流信息，确保id是数字类型
+                const numericShipmentId = Number(shipmentId);
+                if (isNaN(numericShipmentId)) {
                     hideLoading();
-                } catch (error) {
-                    console.error('搜索物流失败:', error);
-                    showMessage('error', '搜索失败，请稍后重试');
-                    hideLoading();
+                    showMessage('error', '无效的物流ID');
+                    return;
                 }
-            }, 800);
+                fetch(`http://localhost:8080/shipment/getById?id=${numericShipmentId}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('未找到物流信息');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // 从响应对象中提取data字段，这是单个物流对象
+                        const shipmentData = data.data;
+                        
+                        // 验证物流是否属于当前用户
+                        if (shipmentData && shipmentData.user_id === currentUserId) {
+                            renderShipmentData([shipmentData]);
+                            showMessage('success', '找到物流信息');
+                        } else {
+                            renderShipmentData([]);
+                            showMessage('error', '未找到您的物流信息');
+                        }
+                        hideLoading();
+                    })
+                    .catch(error => {
+                        console.error('搜索物流失败:', error);
+                        showMessage('error', `未找到ID为 ${shipmentId} 的物流信息`);
+                        renderShipmentData([]);
+                        hideLoading();
+                    });
+            } catch (error) {
+                console.error('搜索物流失败:', error);
+                showMessage('error', '搜索失败，请稍后重试');
+                hideLoading();
+            }
         }
         
         // 根据承运商ID搜索物流信息
@@ -1002,39 +964,43 @@
             
             showLoading();
             
-            // 模拟API请求延迟
-            setTimeout(() => {
-                try {
-                    // 实际应用中应该调用后端API
-                    // fetch(`/api/shipments/carrier/${carrierId}`)
-                    //     .then(response => response.json())
-                    //     .then(data => {
-                    //         // 过滤出当前用户的物流信息
-                    //         const userShipments = data.filter(item => item.user_id === currentUserId);
-                    //         renderShipmentData(userShipments);
-                    //         hideLoading();
-                    //     });
-                    
-                    // 使用模拟数据进行搜索
-                    const searchResult = mockShipmentData.filter(item => 
-                        item.carrier === carrierId && item.user_id === currentUserId
-                    );
-                    
-                    renderShipmentData(searchResult);
-                    
-                    if (searchResult.length === 0) {
-                        showMessage('error', `未找到承运商ID为 ${carrierId} 的物流信息`);
-                    } else {
-                        showMessage('success', `找到 ${searchResult.length} 条物流信息`);
-                    }
-                    
+            try {
+                // 调用后端API根据承运商ID查询物流信息，确保carrierId是数字类型
+                const numericCarrierId = Number(carrierId);
+                if (isNaN(numericCarrierId)) {
                     hideLoading();
-                } catch (error) {
-                    console.error('搜索物流失败:', error);
-                    showMessage('error', '搜索失败，请稍后重试');
-                    hideLoading();
+                    showMessage('error', '无效的承运商ID');
+                    return;
                 }
-            }, 800);
+                fetch(`http://localhost:8080/shipment/getByCarrierId?carrierId=${numericCarrierId}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('网络响应异常');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        renderShipmentData(data);
+                        
+                        if (data.length === 0) {
+                            showMessage('error', `未找到承运商ID为 ${carrierId} 的物流信息`);
+                        } else {
+                            showMessage('success', `找到 ${data.length} 条物流信息`);
+                        }
+                        
+                        hideLoading();
+                    })
+                    .catch(error => {
+                        console.error('搜索物流失败:', error);
+                        showMessage('error', `未找到承运商ID为 ${carrierId} 的物流信息`);
+                        renderShipmentData([]);
+                        hideLoading();
+                    });
+            } catch (error) {
+                console.error('搜索物流失败:', error);
+                showMessage('error', '搜索失败，请稍后重试');
+                hideLoading();
+            }
         }
         
         // 清除搜索，重新加载所有物流数据
@@ -1053,6 +1019,9 @@
         
         // 页面加载完成后初始化
         document.addEventListener('DOMContentLoaded', function() {
+            // 检查登录状态
+            checkLoginStatus();
+            
             // 添加动画样式
             addAnimationStyles();
             
@@ -1090,6 +1059,34 @@
                 });
             });
         });
+        
+        // 检查登录状态函数
+        function checkLoginStatus() {
+            // 检查localStorage中是否存在登录信息
+            const userId = localStorage.getItem('userId');
+            const token = localStorage.getItem('token');
+            const currentLoginType = localStorage.getItem('currentLoginType');
+            
+            // 如果没有登录信息或登录类型不是user，重定向到登录页面
+            if (!userId || !token || currentLoginType !== 'user') {
+                console.warn('未登录或登录信息不完整，重定向到登录页面');
+                window.location.href = 'login.html';
+                return false;
+            }
+            
+            // 更新页面上的用户信息显示
+            updateUserInfoDisplay(userId);
+            
+            return true;
+        }
+        
+        // 更新用户信息显示
+        function updateUserInfoDisplay(userId) {
+            const userInfoElement = document.querySelector('.user-info');
+            if (userInfoElement) {
+                userInfoElement.textContent = `用户ID: ${userId}`;
+            }
+        }
     </script>
 </body>
 </html>

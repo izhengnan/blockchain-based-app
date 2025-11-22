@@ -9,7 +9,7 @@ import java.util.Map;
 
 public class JwtUtils {
 
-    private static String signKey = "5Yy65Z2X6ZO+5oqA5pyv5bqU55So";//区块链技术应用base64编码
+    private static String signKey = "5Yy65Z2X6ZO+5oqA5pyv5bqU55So6Iiq6L+Q54mp5rWB57O757uf";//区块链技术应用航运物流系统 base64编码
     private static Long expire = 43200000L;
 
     /**

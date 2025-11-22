@@ -13,7 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 @Slf4j
-@WebFilter(urlPatterns = "/*")//拦截所有请求
+@WebFilter(urlPatterns = {"/api/*", "/user/*", "/carrier/*", "/admin/*"})//只拦截API请求
 public class TokenFilter implements Filter {
     /**
      * 过滤器核心方法，处理请求拦截和令牌验证逻辑

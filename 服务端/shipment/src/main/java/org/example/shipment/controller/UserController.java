@@ -1,5 +1,6 @@
 package org.example.shipment.controller;
 
+import org.example.shipment.dto.LoginInfo;
 import org.example.shipment.dto.User;
 import org.example.shipment.model.CommonResponse;
 import org.example.shipment.service.backend.UserBackendService;
@@ -32,9 +33,9 @@ public class UserController {
     @CrossOrigin
     @PostMapping("/check")
     public CommonResponse Check(@RequestBody User user) throws ContractException {
-        boolean res = userBackendService.checkUser(user.getId(), user.getPasswd());
-        if (res) {
-            return CommonResponse.ok(res);
+        LoginInfo loginInfo = userBackendService.checkUser(user.getId(), user.getPasswd());
+        if (loginInfo != null) {
+            return CommonResponse.ok(loginInfo);
         }
         return CommonResponse.fail("401", new Exception("用户名或密码错误"));
     }

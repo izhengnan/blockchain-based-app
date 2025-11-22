@@ -2,8 +2,10 @@ package org.example.shipment.service.backend.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.example.shipment.dto.Carrier;
+import org.example.shipment.dto.LoginInfo;
 import org.example.shipment.raw.Shipment1118;
 import org.example.shipment.service.backend.CarrierBackendService;
+import org.example.shipment.utils.JwtUtils;
 import org.fisco.bcos.sdk.client.Client;
 import org.fisco.bcos.sdk.model.TransactionReceipt;
 import org.fisco.bcos.sdk.transaction.model.exception.ContractException;
@@ -14,7 +16,9 @@ import org.springframework.stereotype.Service;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -33,17 +37,76 @@ public class CarrierBackendServiceImpl implements CarrierBackendService {
     }
 
     @Override
-    public boolean checkCarrier(String id, String passwd) throws ContractException {
-        Shipment1118 shipment = Shipment1118.load(contractAddress,client,client.getCryptoSuite().getCryptoKeyPair());
-        return shipment.checkCarrier(new BigInteger(String.valueOf(id)),passwd);
+    public LoginInfo checkCarrier(String name, String passwd) throws ContractException {
+        log.info("checkCarrier: name:{}, passwd:{}", name, passwd);
+        
+        // 先获取所有承运商信息
+        List<Carrier> allCarriers = getAllCarrier();
+        
+        // 通过名称查找对应的ID
+        BigInteger carrierId = null;
+        for (Carrier carrier : allCarriers) {
+            if (carrier.getName().equals(name)) {
+                carrierId = carrier.getId();
+                break;
+            }
+        }
+        
+        // 如果找不到对应名称的承运商，返回null
+        if (carrierId == null) {
+            log.warn("找不到用户名为{}的承运商", name);
+            return null;
+        }
+        
+        // 使用ID调用合约的checkCarrier方法验证密码
+        Shipment1118 shipment = Shipment1118.load(contractAddress, client, client.getCryptoSuite().getCryptoKeyPair());
+        Boolean isValid = shipment.checkCarrier(carrierId, passwd);
+        
+        if (isValid) {
+            // 获取承运商详细信息
+            Carrier carrier = getCarrierById(carrierId);
+            
+            // 构建JWT声明
+            Map<String, Object> claims = new HashMap<>();
+            claims.put("id", carrierId.toString());
+            claims.put("name", carrier.getName());
+            claims.put("userType", "carrier");
+            
+            // 生成令牌
+            String token = JwtUtils.generateJwt(claims);
+            
+            // 构建并返回LoginInfo对象
+            return new LoginInfo(token, carrier.getName(), null, carrierId, "carrier");
+        } else {
+            // 验证失败，返回null
+            log.warn("承运商验证失败: name:{}", name);
+            return null;
+        }
     }
 
     @Override
-    public BigInteger[] getShipmentsByCarrier(String id) throws ContractException {
-        //1、获取合约实例
-        Shipment1118 shipment = Shipment1118.load(contractAddress,client,client.getCryptoSuite().getCryptoKeyPair());
-        //2、与合约交互
-        List<BigInteger> transactionReceipt = shipment.getShipmentsByCarrier(new BigInteger(String.valueOf(id)));
+    public BigInteger[] getShipmentsByCarrier(String name) throws ContractException {
+        // 先获取所有承运商信息
+        List<Carrier> allCarriers = getAllCarrier();
+        
+        // 通过名称查找对应的ID
+        BigInteger carrierId = null;
+        for (Carrier carrier : allCarriers) {
+            if (carrier.getName().equals(name)) {
+                carrierId = carrier.getId();
+                break;
+            }
+        }
+        
+        // 如果找不到对应名称的承运商，返回空数组
+        if (carrierId == null) {
+            log.warn("找不到用户名为{}的承运商", name);
+            return new BigInteger[0];
+        }
+        
+        // 使用ID调用合约的getShipmentsByCarrier方法
+        Shipment1118 shipment = Shipment1118.load(contractAddress, client, client.getCryptoSuite().getCryptoKeyPair());
+        List<BigInteger> transactionReceipt = shipment.getShipmentsByCarrier(carrierId);
         return transactionReceipt.toArray(new BigInteger[0]);
     }
 

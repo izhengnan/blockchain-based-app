@@ -32,7 +32,7 @@ public class ShipmentBackendServiceImpl implements ShipmentBackendService {
         try {
             Shipment1118 shipment1118 = Shipment1118.load(contractAddress, client, client.getCryptoSuite().getCryptoKeyPair());
             TransactionReceipt receipt = shipment1118.addShipment(userId, carrier, from, to);
-            log.info("添加运输记录交易成功，交易哈希：{}", receipt.getTransactionHash());
+            log.info("添加运输记录交易成功，交易哈希：{}，status={}", receipt.getTransactionHash(), receipt.getStatus());
             return true;
         } catch (Exception e) {
             log.error("添加运输记录失败：{}", e.getMessage());
@@ -177,6 +177,7 @@ public class ShipmentBackendServiceImpl implements ShipmentBackendService {
 
     @Override
     public List<Shipment> getShipmentByUserId(BigInteger userId) {
+        log.info("根据用户ID获取运输记录：userId={}", userId);
         //先查询所有的运输记录，然后根据用户ID过滤
         List<Shipment> shipments = getAllShipment();
         List<Shipment> userShipments = new ArrayList<>();

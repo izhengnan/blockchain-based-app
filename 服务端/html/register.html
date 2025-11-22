@@ -537,12 +537,21 @@
                 console.log('注册响应:', data);
                 if (data.code === "0") {
                     messageDiv.className = 'message success';
-                    messageDiv.textContent = '注册成功！正在跳转到登录页面...';
+                    messageDiv.textContent = '注册成功！正在跳转...';
                     messageDiv.style.display = 'block';
                     
-                    // 成功后延迟跳转到登录页面
+                    // 成功后延迟跳转到对应页面
                     setTimeout(() => {
-                        window.location.href = 'login.html';
+                        switch(currentRegisterType) {
+                            case 'user':
+                                window.location.href = 'shippers.html';
+                                break;
+                            case 'carrier':
+                                window.location.href = 'carrier.html';
+                                break;
+                            default:
+                                window.location.href = 'login.html';
+                        }
                     }, 2000);
                 } else {
                     messageDiv.className = 'message error';

@@ -1091,7 +1091,7 @@
                 const response = await fetch(`${API_BASE_URL}/list`);
                 const result = await response.json();
                 
-                if (result.code === 200) {
+                if (result.code === '0') {
                     allCarriers = result.data || [];
                     totalPages = Math.ceil(allCarriers.length / pageSize);
                     displayCarriers();
@@ -1241,7 +1241,7 @@
                 const response = await fetch(`${API_BASE_URL}/getById?id=${carrierId}`);
                 const result = await response.json();
                 
-                if (result.code === 200) {
+                if (result.code === '0') {
                     allCarriers = result.data ? [result.data] : [];
                     currentPage = 1;
                     totalPages = 1;
@@ -1298,7 +1298,7 @@
                 
                 const result = await response.json();
                 
-                if (result.code === 200) {
+                if (result.code === '0') {
                     showMessage('承运商添加成功', 'success');
                     // 关闭模态框
                     const modal = bootstrap.Modal.getInstance(document.getElementById('addCarrierModal'));
@@ -1352,7 +1352,7 @@
                 
                 const result = await response.json();
                 
-                if (result.code === 200) {
+                if (result.code === '0') {
                     showMessage('密码修改成功', 'success');
                     // 关闭模态框
                     const modal = bootstrap.Modal.getInstance(document.getElementById('editPasswordModal'));
@@ -1377,7 +1377,7 @@
             })
             .then(response => response.json())
             .then(result => {
-                if (result.code === 200) {
+                if (result.code === '0') {
                     showMessage('承运商删除成功', 'success');
                     loadCarrierList(currentPage);
                 } else {

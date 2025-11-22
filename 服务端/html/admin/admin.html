@@ -949,7 +949,7 @@
                 const response = await fetch(`${API_BASE_URL}/list`);
                 const result = await response.json();
                 
-                if (result.code === 200) {
+                if (result.code === '0') {
                     allAdmins = result.data || [];
                     totalPages = Math.ceil(allAdmins.length / pageSize);
                     displayAdmins();
@@ -1043,6 +1043,7 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
                     },
                     body: JSON.stringify({
                         account: account,
@@ -1106,6 +1107,7 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
                     },
                     body: JSON.stringify({
                         account: account,
@@ -1151,8 +1153,29 @@
             window.location.href = '../login.html';
         }
         
-        // 页面加载时获取当前用户名
+        // 检查登录状态函数
+        function checkAdminLoginStatus() {
+            // 检查localStorage中是否存在登录信息
+            const userId = localStorage.getItem('userId');
+            const token = localStorage.getItem('token');
+            const currentLoginType = localStorage.getItem('currentLoginType');
+            
+            // 如果没有登录信息或登录类型不是admin，重定向到登录页面
+            if (!userId || !token || currentLoginType !== 'admin') {
+                alert('请先登录管理员账号');
+                window.location.href = '../login.html';
+                return false;
+            }
+            return true;
+        }
+        
+        // 页面加载时检查登录状态并获取用户名
         window.addEventListener('load', function() {
+            // 先检查登录状态
+            if (!checkAdminLoginStatus()) {
+                return; // 如果未登录，直接返回
+            }
+            
             const usernameElement = document.getElementById('currentUsername');
             if (usernameElement) {
                 // 尝试从localStorage获取用户名

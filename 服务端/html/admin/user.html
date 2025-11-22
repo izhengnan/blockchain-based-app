@@ -1022,7 +1022,7 @@
                 const response = await fetch(`${API_BASE_URL}/list`);
                 const result = await response.json();
                 
-                if (result.code === 200) {
+                if (result.code === '0') {
                     allUsers = result.data || [];
                     totalPages = Math.ceil(allUsers.length / pageSize);
                     displayUsers();
@@ -1171,7 +1171,7 @@
                 const response = await fetch(`${API_BASE_URL}/getById?id=${userId}`);
                 const result = await response.json();
                 
-                if (result.code === 200) {
+                if (result.code === '0') {
                     allUsers = result.data ? [result.data] : [];
                     currentPage = 1;
                     totalPages = 1;
@@ -1222,13 +1222,14 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
                     },
                     body: JSON.stringify({ name, passwd })
                 });
                 
                 const result = await response.json();
                 
-                if (result.code === 200) {
+                if (result.code === '0') {
                     showMessage('货主添加成功', 'success');
                     // 关闭模态框
                     const modal = bootstrap.Modal.getInstance(document.getElementById('addUserModal'));
@@ -1273,6 +1274,7 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
                     },
                     body: JSON.stringify({ 
                         id: userId,
@@ -1282,7 +1284,7 @@
                 
                 const result = await response.json();
                 
-                if (result.code === 200) {
+                if (result.code === '0') {
                     showMessage('密码修改成功', 'success');
                     // 关闭模态框
                     const modal = bootstrap.Modal.getInstance(document.getElementById('editPasswordModal'));
@@ -1307,7 +1309,7 @@
             })
             .then(response => response.json())
             .then(result => {
-                if (result.code === 200) {
+                if (result.code === '0') {
                     showMessage('货主删除成功', 'success');
                     loadUserList(currentPage);
                 } else {

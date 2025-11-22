@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class CommonResponse {
 
-    public static final String OK = "200";
+    public static final String OK = "0";
 
     private String code;
     private String message;
