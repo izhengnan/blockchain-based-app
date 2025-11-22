@@ -48,15 +48,14 @@
         }
         
         .top-bar {
-            background: rgba(255, 255, 255, 0.85);
+            background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             padding: 15px 35px;
             box-shadow: 
-                0 4px 6px -1px rgba(0, 0, 0, 0.1),
-                0 2px 4px -1px rgba(0, 0, 0, 0.06),
-                inset 0 1px 0 rgba(255, 255, 255, 0.6);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+                0 4px 6px -1px rgba(0, 0, 0, 0.08),
+                0 2px 4px -1px rgba(0, 0, 0, 0.04);
+            border-bottom: 2px solid #3b82f6;
             position: fixed;
             top: 0;
             left: 0;
@@ -65,6 +64,41 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            overflow: hidden;
+        }
+        
+        .top-bar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.5), transparent);
+        }
+        
+        .top-bar::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: -20px;
+            width: 40px;
+            height: 40px;
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: 50%;
+            transform: translateY(-50%);
+        }
+        
+        .top-bar .left-section::after {
+            content: '';
+            position: absolute;
+            top: 15px;
+            right: 40px;
+            width: 12px;
+            height: 12px;
+            background: rgba(59, 130, 246, 0.2);
+            border-radius: 2px;
+            transform: rotate(45deg);
         }
         
         .left-section {
@@ -82,16 +116,33 @@
         }
         
         .top-bar h1 {
-            background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: #1f2937;
             font-size: 1.8rem;
             font-weight: 700;
             margin: 0;
             display: flex;
             align-items: center;
             letter-spacing: -0.025em;
+            position: relative;
+            padding-left: 40px;
+        }
+        
+        .top-bar h1::before {
+            content: '📦';
+            position: absolute;
+            left: 0;
+            font-size: 1.4rem;
+        }
+        
+        .top-bar h1::after {
+            content: '';
+            position: absolute;
+            left: 32px;
+            top: 50%;
+            height: 20px;
+            width: 2px;
+            background: #3b82f6;
+            transform: translateY(-50%);
         }
         
         .top-bar h1 i {
@@ -487,10 +538,13 @@
                 <!-- 用户信息和退出按钮 -->
                 <div class="user-info-section">
                     <div class="user-info">
-                        <div class="username">货主</div>
-                        <div class="role">系统用户</div>
+                        <div class="username" style="position: relative; padding-left: 8px;">
+                            货主
+                            <span style="position: absolute; left: 0; top: 50%; width: 4px; height: 16px; background: #3b82f6; border-radius: 2px; transform: translateY(-50%);"></span>
+                        </div>
+                        <div class="role" style="font-size: 0.85rem; color: #6b7280;">系统用户</div>
                     </div>
-                    <button class="btn btn-outline-danger" onclick="logout()">
+                    <button class="btn" style="border: 1px solid #3b82f6; color: #3b82f6; border-radius: 6px; padding: 6px 16px; transition: all 0.2s; background: transparent;" onclick="logout()">
                         <i class="bi bi-box-arrow-right"></i>
                         退出
                     </button>
@@ -540,6 +594,7 @@
                             <thead>
                                 <tr>
                                     <th><i class="bi bi-hash"></i> 物流ID</th>
+                                    <th><i class="bi bi-person"></i> 用户ID</th>
                                     <th><i class="bi bi-building"></i> 承运商</th>
                                     <th><i class="bi bi-map"></i> 出发地</th>
                                     <th><i class="bi bi-flag"></i> 目的地</th>
@@ -732,7 +787,7 @@
             if (data.length === 0) {
                 const emptyRow = document.createElement('tr');
                 emptyRow.innerHTML = `
-                    <td colspan="6" class="text-center py-4">
+                    <td colspan="7" class="text-center py-4">
                         <i class="bi bi-inbox text-gray-400" style="font-size: 2rem; display: block; margin-bottom: 10px;"></i>
                         <div>暂无物流数据</div>
                     </td>
@@ -757,6 +812,9 @@
                 row.innerHTML = `
                     <td>
                         <div style="font-weight: 500; color: #4299e1;">${shipment.id || '-'}</div>
+                    </td>
+                    <td>
+                        <div>${shipment.user_id || '-'}</div>
                     </td>
                     <td>${getCarrierName(shipment.carrier) || '-'}</td>
                     <td>

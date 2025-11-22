@@ -48,15 +48,14 @@
         }
         
         .top-bar {
-            background: rgba(255, 255, 255, 0.85);
+            background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             padding: 15px 35px;
             box-shadow: 
-                0 4px 6px -1px rgba(0, 0, 0, 0.1),
-                0 2px 4px -1px rgba(0, 0, 0, 0.06),
-                inset 0 1px 0 rgba(255, 255, 255, 0.6);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+                0 4px 6px -1px rgba(0, 0, 0, 0.08),
+                0 2px 4px -1px rgba(0, 0, 0, 0.04);
+            border-bottom: 2px solid #3b82f6;
             position: fixed;
             top: 0;
             left: 0;
@@ -65,6 +64,41 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            overflow: hidden;
+        }
+        
+        .top-bar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.5), transparent);
+        }
+        
+        .top-bar::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: -20px;
+            width: 40px;
+            height: 40px;
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: 50%;
+            transform: translateY(-50%);
+        }
+        
+        .top-bar .left-section::after {
+            content: '';
+            position: absolute;
+            top: 15px;
+            right: 40px;
+            width: 12px;
+            height: 12px;
+            background: rgba(59, 130, 246, 0.2);
+            border-radius: 2px;
+            transform: rotate(45deg);
         }
         
         .left-section {
@@ -82,16 +116,33 @@
         }
         
         .top-bar h1 {
-            background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: #1f2937;
             font-size: 1.8rem;
             font-weight: 700;
             margin: 0;
             display: flex;
             align-items: center;
             letter-spacing: -0.025em;
+            position: relative;
+            padding-left: 40px;
+        }
+        
+        .top-bar h1::before {
+            content: '📦';
+            position: absolute;
+            left: 0;
+            font-size: 1.4rem;
+        }
+        
+        .top-bar h1::after {
+            content: '';
+            position: absolute;
+            left: 32px;
+            top: 50%;
+            height: 20px;
+            width: 2px;
+            background: #3b82f6;
+            transform: translateY(-50%);
         }
         
         .top-bar h1 i {
@@ -250,7 +301,7 @@
             background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
             color: white;
             box-shadow: 0 4px 12px rgba(66, 153, 225, 0.3);
-            min-width: 160px; /* 固定最小宽度确保两个按钮宽度相等 */
+            min-width: auto; /* 根据内容自动调整宽度 */
         }
         
         .btn-update-custom {
@@ -623,10 +674,13 @@
                 <!-- 用户信息和退出按钮 -->
                 <div class="user-info-section">
                     <div class="user-info">
-                        <div class="username">承运商</div>
-                        <div class="role">系统用户</div>
+                        <div class="username" style="position: relative; padding-left: 8px;">
+                            承运商
+                            <span style="position: absolute; left: 0; top: 50%; width: 4px; height: 16px; background: #3b82f6; border-radius: 2px; transform: translateY(-50%);"></span>
+                        </div>
+                        <div class="role" style="font-size: 0.85rem; color: #6b7280;">系统用户</div>
                     </div>
-                    <button class="btn btn-outline-danger" onclick="logout()">
+                    <button class="btn" style="border: 1px solid #3b82f6; color: #3b82f6; border-radius: 6px; padding: 6px 16px; transition: all 0.2s; background: transparent;" onclick="logout()">
                         <i class="bi bi-box-arrow-right"></i>
                         退出
                     </button>
@@ -655,6 +709,14 @@
                             <button class="btn btn-custom btn-secondary-custom" onclick="clearSearchAndShowAll()" type="button">
                                 <i class="bi bi-trash"></i>
                                 清空查询
+                            </button>
+                        </div>
+                        
+                        <!-- 添加运单按钮 -->
+                        <div style="margin-top: 15px; text-align: left;">
+                            <button class="btn btn-custom btn-primary-custom" onclick="openAddShipmentModal()" type="button" style="width: auto;">
+                                <i class="bi bi-plus-circle"></i>
+                                添加运单
                             </button>
                         </div>
                     </div>
@@ -694,6 +756,38 @@
             </div>
         </main>
     </div>
+    <!-- 添加运单模态框 -->
+    <div id="addShipmentModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5>添加运单</h5>
+                <button type="button" class="modal-close" onclick="closeAddModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="userIdInput">用户ID：</label>
+                    <input type="text" id="userIdInput" placeholder="请输入用户ID">
+                </div>
+                <div class="form-group">
+                    <label for="carrierInput">承运商ID：</label>
+                    <input type="text" id="carrierInput" placeholder="承运商ID" readonly style="background-color: #f7fafc; cursor: not-allowed;">
+                </div>
+                <div class="form-group">
+                    <label for="fromInput">出发地：</label>
+                    <input type="text" id="fromInput" placeholder="请输入出发地">
+                </div>
+                <div class="form-group">
+                    <label for="toInput">目的地：</label>
+                    <input type="text" id="toInput" placeholder="请输入目的地">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-custom btn-secondary-custom" onclick="closeAddModal()" type="button" style="width: auto;">取消</button>
+                <button class="btn btn-custom btn-primary-custom" onclick="addShipment()" type="button" style="width: auto;">确认添加</button>
+            </div>
+        </div>
+    </div>
+    
     <!-- 更新状态模态框 -->
     <div id="updateStatusModal" class="modal" style="display: none;">
         <div class="modal-content">
@@ -740,6 +834,119 @@
                 const carrierName = mockCarrierData[currentCarrierId] ? mockCarrierData[currentCarrierId].name : '承运商';
                 usernameElement.textContent = carrierName;
             }
+        }
+        
+        // 打开添加运单模态框
+        function openAddShipmentModal() {
+            const modal = document.getElementById('addShipmentModal');
+            const carrierInput = document.getElementById('carrierInput');
+            
+            // 预填充承运商ID为当前登录的承运商
+            if (carrierInput) {
+                carrierInput.value = currentCarrierId;
+            }
+            
+            if (modal) {
+                modal.style.display = 'block';
+            }
+        }
+        
+        // 关闭添加运单模态框
+        function closeAddModal() {
+            const modal = document.getElementById('addShipmentModal');
+            if (modal) {
+                modal.style.display = 'none';
+                // 清空表单
+                document.getElementById('userIdInput').value = '';
+                document.getElementById('fromInput').value = '';
+                document.getElementById('toInput').value = '';
+            }
+        }
+        
+        // 添加运单
+        function addShipment() {
+            const userId = document.getElementById('userIdInput').value.trim();
+            const carrier = document.getElementById('carrierInput').value.trim();
+            const from = document.getElementById('fromInput').value.trim();
+            const to = document.getElementById('toInput').value.trim();
+            
+            // 验证输入
+            if (!userId) {
+                showMessage('请输入用户ID', 'error');
+                return;
+            }
+            if (!carrier) {
+                showMessage('承运商ID不能为空', 'error');
+                return;
+            }
+            if (!from) {
+                showMessage('请输入出发地', 'error');
+                return;
+            }
+            if (!to) {
+                showMessage('请输入目的地', 'error');
+                return;
+            }
+            
+            // 显示加载中
+            showLoading();
+            
+            // 准备请求数据
+            const shipmentData = {
+                user_id: userId,
+                carrier: carrier,
+                from: from,
+                to: to
+            };
+            
+            // 调用后端API
+            fetch('/shipment/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(shipmentData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('网络响应错误');
+                }
+                return response.json();
+            })
+            .then(data => {
+                hideLoading();
+                if (data.code === '200' || data.success) {
+                    showMessage('运单添加成功');
+                    closeAddModal();
+                    
+                    // 创建一个新的运单对象并添加到mock数据中（模拟后端返回）
+                    const now = new Date();
+                    const formattedDate = now.toLocaleString('zh-CN');
+                    const newShipment = {
+                        id: 'SHIP' + (10000 + Math.floor(Math.random() * 90000)),
+                        user_id: userId,
+                        carrier: carrier,
+                        status: 'pending',
+                        from_address: from,
+                        to_address: to,
+                        create_time: formattedDate,
+                        update_time: formattedDate
+                    };
+                    
+                    // 将新运单添加到mock数据中
+                    mockShipmentData.push(newShipment);
+                    
+                    // 重新渲染运单列表
+                    renderShipmentData(mockShipmentData);
+                } else {
+                    showMessage('添加失败: ' + (data.message || '未知错误'), 'error');
+                }
+            })
+            .catch(error => {
+                hideLoading();
+                console.error('添加运单失败:', error);
+                showMessage('添加运单失败，请稍后重试', 'error');
+            });
         }
         
         // 响应式布局处理

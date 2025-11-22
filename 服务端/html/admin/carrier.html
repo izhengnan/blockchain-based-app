@@ -899,6 +899,7 @@
                                     <th><i class="bi bi-hash"></i> 序号</th>
                                     <th><i class="bi bi-person-badge"></i> 承运商ID</th>
                                     <th><i class="bi bi-person"></i> 承运商名称</th>
+                                    <th><i class="bi bi-info-circle"></i> 介绍</th>
                                     <th><i class="bi bi-gear"></i> 操作</th>
                                 </tr>
                             </thead>
@@ -1072,9 +1073,9 @@
                 const mockData = {
                     code: 200,
                     data: [
-                        { id: 'carrier001', name: '顺丰速运' },
-                        { id: 'carrier002', name: '中通快递' },
-                        { id: 'carrier003', name: '韵达快递' }
+                        { id: 'carrier001', name: '顺丰速运', info: '国内知名快递物流企业，提供高效安全的物流服务' },
+                        { id: 'carrier002', name: '中通快递', info: '覆盖全国的快递网络，价格合理，服务可靠' },
+                        { id: 'carrier003', name: '韵达快递', info: '专注于电商配送，时效性强，性价比高' }
                     ]
                 };
                 
@@ -1117,7 +1118,7 @@
             if (pageCarriers.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="4" class="text-center py-4">
+                        <td colspan="5" class="text-center py-4">
                             <i class="bi bi-inbox" style="font-size: 2rem; color: #ccc;"></i>
                             <div class="mt-2">暂无数据</div>
                         </td>
@@ -1131,6 +1132,7 @@
                     <td>${startIndex + index + 1}</td>
                     <td>${carrier.id || '-'}</td>
                     <td>${carrier.name || '-'}</td>
+                    <td>${carrier.info || '-'}</td>
                     <td>
                         <button class="btn action-btn btn-edit" onclick="editCarrierPassword('${carrier.id}', '${carrier.name}')">
                             <i class="bi bi-key"></i> 修改密码

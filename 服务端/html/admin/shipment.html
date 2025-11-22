@@ -457,6 +457,21 @@
             background: rgba(39, 174, 96, 0.1);
             color: #27ae60;
         }
+
+        .status-pending {
+            background: rgba(241, 196, 15, 0.1);
+            color: #f39c12;
+        }
+
+        .status-delivered {
+            background: rgba(52, 152, 219, 0.1);
+            color: #3498db;
+        }
+
+        .status-cancelled {
+            background: rgba(231, 76, 60, 0.1);
+            color: #e74c3c;
+        }
         
         .search-input {
             min-width: auto;
@@ -746,9 +761,13 @@
                                 <tr>
                                     <th><i class="bi bi-hash"></i> 序号</th>
                                     <th><i class="bi bi-geo-alt"></i> 物流ID</th>
-                                    <th><i class="bi bi-building"></i> 货主名称</th>
-                                    <th><i class="bi bi-truck"></i> 承运商名称</th>
-                                    <th><i class="bi bi-box-seam"></i> 货物信息</th>
+                                    <th><i class="bi bi-person"></i> 用户ID</th>
+                                    <th><i class="bi bi-truck"></i> 承运商ID</th>
+                                    <th><i class="bi bi-geo-alt"></i> 出发地</th>
+                                    <th><i class="bi bi-flag"></i> 目的地</th>
+                                    <th><i class="bi bi-signpost-2"></i> 状态</th>
+                                    <th><i class="bi bi-calendar"></i> 创建时间</th>
+                                    <th><i class="bi bi-clock"></i> 更新时间</th>
                                     <th style="width: 120px;"><i class="bi bi-gear"></i> 操作</th>
                                 </tr>
                             </thead>
@@ -772,6 +791,88 @@
     </div>
     
 
+    <!-- 添加运单模态框 -->
+    <div class="modal fade" id="addShipmentModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-plus-circle"></i>
+                        添加运单信息
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addShipmentForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="addUserId" class="form-label">
+                                        <i class="bi bi-person"></i> 用户ID
+                                    </label>
+                                    <input type="text" class="form-control" id="addUserId" name="user_id" 
+                                           placeholder="请输入用户ID">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="addCarrier" class="form-label">
+                                        <i class="bi bi-truck"></i> 承运商ID
+                                    </label>
+                                    <input type="text" class="form-control" id="addCarrier" name="carrier" 
+                                           placeholder="请输入承运商ID">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="addStatus" class="form-label">
+                                        <i class="bi bi-signpost-2"></i> 状态
+                                    </label>
+                                    <select class="form-control" id="addStatus" name="status">
+                                        <option value="pending">待处理</option>
+                                        <option value="active">进行中</option>
+                                        <option value="delivered">已送达</option>
+                                        <option value="cancelled">已取消</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="addFrom" class="form-label">
+                                        <i class="bi bi-geo-alt"></i> 出发地
+                                    </label>
+                                    <input type="text" class="form-control" id="addFrom" name="from" 
+                                           placeholder="请输入出发地">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="addTo" class="form-label">
+                                        <i class="bi bi-flag"></i> 目的地
+                                    </label>
+                                    <input type="text" class="form-control" id="addTo" name="to" 
+                                           placeholder="请输入目的地">
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x"></i> 取消
+                    </button>
+                    <button type="button" class="btn btn-success-custom" onclick="addShipment()">
+                        <i class="bi bi-check"></i> 确认添加
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- 更新运单模态框 -->
     <div class="modal fade" id="updateShipmentModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
@@ -789,40 +890,82 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="updateLogisticsId" class="form-label">
-                                        <i class="bi bi-geo-alt"></i> 物流ID
+                                    <label for="updateId" class="form-label">
+                                        <i class="bi bi-geo-alt"></i> 运单ID
                                     </label>
-                                    <input type="text" class="form-control" id="updateLogisticsId" name="logisticsId" 
-                                           placeholder="请输入物流ID" required>
+                                    <input type="text" class="form-control" id="updateId" name="id" 
+                                           placeholder="请输入运单ID" readonly>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="updateShipperName" class="form-label">
-                                        <i class="bi bi-building"></i> 货主名称
+                                    <label for="updateUserId" class="form-label">
+                                        <i class="bi bi-person"></i> 用户ID
                                     </label>
-                                    <input type="text" class="form-control" id="updateShipperName" name="shipperName" 
-                                           placeholder="请输入货主名称" required>
+                                    <input type="text" class="form-control" id="updateUserId" name="user_id" 
+                                           placeholder="请输入用户ID">
                                 </div>
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="updateCarrierName" class="form-label">
-                                        <i class="bi bi-truck"></i> 承运商名称
+                                    <label for="updateCarrier" class="form-label">
+                                        <i class="bi bi-truck"></i> 承运商ID
                                     </label>
-                                    <input type="text" class="form-control" id="updateCarrierName" name="carrierName" 
-                                           placeholder="请输入承运商名称" required>
+                                    <input type="text" class="form-control" id="updateCarrier" name="carrier" 
+                                           placeholder="请输入承运商ID">
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="updateCargoInfo" class="form-label">
-                                        <i class="bi bi-box-seam"></i> 货物信息
+                                    <label for="updateStatus" class="form-label">
+                                        <i class="bi bi-signpost-2"></i> 状态
                                     </label>
-                                    <input type="text" class="form-control" id="updateCargoInfo" name="cargoInfo" 
-                                           placeholder="请输入货物信息" required>
+                                    <select class="form-control" id="updateStatus" name="status">
+                                        <option value="pending">待处理</option>
+                                        <option value="active">进行中</option>
+                                        <option value="delivered">已送达</option>
+                                        <option value="cancelled">已取消</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="updateFrom" class="form-label">
+                                        <i class="bi bi-geo-alt"></i> 出发地
+                                    </label>
+                                    <input type="text" class="form-control" id="updateFrom" name="from" 
+                                           placeholder="请输入出发地">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="updateTo" class="form-label">
+                                        <i class="bi bi-flag"></i> 目的地
+                                    </label>
+                                    <input type="text" class="form-control" id="updateTo" name="to" 
+                                           placeholder="请输入目的地">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="updateCreateTime" class="form-label">
+                                        <i class="bi bi-calendar"></i> 创建时间
+                                    </label>
+                                    <input type="datetime-local" class="form-control" id="updateCreateTime" name="createTime" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="updateUpdateTime" class="form-label">
+                                        <i class="bi bi-clock"></i> 更新时间
+                                    </label>
+                                    <input type="datetime-local" class="form-control" id="updateUpdateTime" name="updateTime" readonly>
                                 </div>
                             </div>
                         </div>
@@ -916,12 +1059,16 @@
                 currentPage = page;
                 
                 // 模拟数据 - 替换API调用
+                const now = new Date();
+                const yesterday = new Date(now);
+                yesterday.setDate(yesterday.getDate() - 1);
+                
                 const mockData = {
                     code: 200,
                     data: [
-                        { id: '1', logisticsId: 'SF1234567890', shipperName: '阿里巴巴物流', carrierName: '顺丰速运', cargoInfo: '电子设备' },
-                        { id: '2', logisticsId: 'YT9876543210', shipperName: '京东物流', carrierName: '圆通速递', cargoInfo: '家居用品' },
-                        { id: '3', logisticsId: 'ZT6543219870', shipperName: '拼多多供应链', carrierName: '中通快递', cargoInfo: '服装鞋帽' }
+                        { id: '1', user_id: 'user123', carrier: 'SF', from: '北京', to: '上海', status: 'delivered', createTime: yesterday.toISOString(), updateTime: now.toISOString() },
+                        { id: '2', user_id: 'user456', carrier: 'YT', from: '广州', to: '深圳', status: 'active', createTime: yesterday.toISOString(), updateTime: now.toISOString() },
+                        { id: '3', user_id: 'user789', carrier: 'ZT', from: '杭州', to: '南京', status: 'pending', createTime: now.toISOString(), updateTime: now.toISOString() }
                     ]
                 };
                 
@@ -954,6 +1101,31 @@
             }
         }
         
+        // 格式化时间显示
+        function formatDateTime(dateTime) {
+            if (!dateTime) return '-';
+            const date = new Date(dateTime);
+            return date.toLocaleString('zh-CN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+        }
+
+        // 获取状态显示文本和样式
+        function getStatusInfo(status) {
+            const statusMap = {
+                'pending': { text: '待处理', className: 'status-pending' },
+                'active': { text: '进行中', className: 'status-active' },
+                'delivered': { text: '已送达', className: 'status-delivered' },
+                'cancelled': { text: '已取消', className: 'status-cancelled' }
+            };
+            return statusMap[status] || { text: status || '-', className: '' };
+        }
+
         // 显示运单数据（分页）
         function displayShipments() {
             const tbody = document.getElementById('shipmentTableBody');
@@ -964,7 +1136,7 @@
             if (pageShipments.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="6" class="text-center py-4">
+                        <td colspan="10" class="text-center py-4">
                             <i class="bi bi-inbox" style="font-size: 2rem; color: #ccc;"></i>
                             <div class="mt-2">暂无数据</div>
                         </td>
@@ -973,23 +1145,31 @@
                 return;
             }
             
-            tbody.innerHTML = pageShipments.map((shipment, index) => `
+            tbody.innerHTML = pageShipments.map((shipment, index) => {
+                const statusInfo = getStatusInfo(shipment.status);
+                return `
                 <tr>
                     <td>${startIndex + index + 1}</td>
-                    <td>${shipment.logisticsId || '-'}</td>
-                    <td>${shipment.shipperName || '-'}</td>
-                    <td>${shipment.carrierName || '-'}</td>
-                    <td>${shipment.cargoInfo || '-'}</td>
+                    <td>${shipment.id || '-'}</td>
+                    <td>${shipment.user_id || '-'}</td>
+                    <td>${shipment.carrier || '-'}</td>
+                    <td>${shipment.from || '-'}</td>
+                    <td>${shipment.to || '-'}</td>
                     <td>
-                        <button class="btn action-btn btn-edit" onclick="editShipment('${shipment.id}', '${shipment.logisticsId}', '${shipment.shipperName}', '${shipment.carrierName}', '${shipment.cargoInfo}')">
+                        <span class="status-badge ${statusInfo.className}">${statusInfo.text}</span>
+                    </td>
+                    <td>${formatDateTime(shipment.createTime)}</td>
+                    <td>${formatDateTime(shipment.updateTime)}</td>
+                    <td>
+                        <button class="btn action-btn btn-edit" onclick="editShipment('${shipment.id}', '${shipment.user_id}', '${shipment.carrier}', '${shipment.from}', '${shipment.to}', '${shipment.status}', '${shipment.createTime}', '${shipment.updateTime}')">
                             <i class="bi bi-pencil"></i> 更新
                         </button>
-                        <button class="btn action-btn btn-danger" onclick="deleteShipment('${shipment.id}', '${shipment.logisticsId}')">
+                        <button class="btn action-btn btn-danger" onclick="deleteShipment('${shipment.id}', '${shipment.id}')">
                             <i class="bi bi-trash"></i> 删除
                         </button>
                     </td>
-                </tr>
-            `).join('');
+                </tr>`;
+            }).join('');
         }
         
         // 渲染分页控件
@@ -1123,10 +1303,17 @@
             const form = document.getElementById('addShipmentForm');
             const formData = new FormData(form);
             
-            const logisticsId = formData.get('logisticsId');
-            const shipperName = formData.get('shipperName');
-            const carrierName = formData.get('carrierName');
-            const cargoInfo = formData.get('cargoInfo');
+            const currentTime = new Date().toISOString();
+            
+            const newShipment = {
+                user_id: formData.get('user_id'),
+                carrier: formData.get('carrier'),
+                from: formData.get('from'),
+                to: formData.get('to'),
+                status: formData.get('status'),
+                createTime: currentTime,
+                updateTime: currentTime
+            };
             
             try {
                 const response = await fetch(`${API_BASE_URL}/add`, {
@@ -1134,7 +1321,7 @@
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ logisticsId, shipperName, carrierName, cargoInfo })
+                    body: JSON.stringify(newShipment)
                 });
                 
                 const result = await response.json();
@@ -1163,12 +1350,24 @@
         }
         
         // 编辑运单
-        function editShipment(id, logisticsId, shipperName, carrierName, cargoInfo) {
+        function editShipment(id, user_id, carrier, from, to, status, createTime, updateTime) {
             document.getElementById('updateShipmentId').value = id;
-            document.getElementById('updateLogisticsId').value = logisticsId;
-            document.getElementById('updateShipperName').value = shipperName;
-            document.getElementById('updateCarrierName').value = carrierName;
-            document.getElementById('updateCargoInfo').value = cargoInfo;
+            document.getElementById('updateId').value = id;
+            document.getElementById('updateUserId').value = user_id;
+            document.getElementById('updateCarrier').value = carrier;
+            document.getElementById('updateFrom').value = from;
+            document.getElementById('updateTo').value = to;
+            document.getElementById('updateStatus').value = status;
+            
+            // 格式化时间为datetime-local格式
+            function formatDateTimeForInput(dateStr) {
+                if (!dateStr) return '';
+                const date = new Date(dateStr);
+                return date.toISOString().slice(0, 16); // YYYY-MM-DDTHH:MM格式
+            }
+            
+            document.getElementById('updateCreateTime').value = formatDateTimeForInput(createTime);
+            document.getElementById('updateUpdateTime').value = formatDateTimeForInput(updateTime);
             
             // 显示模态框
             const modal = new bootstrap.Modal(document.getElementById('updateShipmentModal'));
@@ -1183,10 +1382,11 @@
             
             const updateData = {
                 id: shipmentId,
-                logisticsId: formData.get('logisticsId'),
-                shipperName: formData.get('shipperName'),
-                carrierName: formData.get('carrierName'),
-                cargoInfo: formData.get('cargoInfo')
+                user_id: formData.get('user_id'),
+                carrier: formData.get('carrier'),
+                from: formData.get('from'),
+                to: formData.get('to'),
+                status: formData.get('status')
             };
             
             try {
