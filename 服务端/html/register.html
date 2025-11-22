@@ -540,18 +540,9 @@
                     messageDiv.textContent = '注册成功！正在跳转...';
                     messageDiv.style.display = 'block';
                     
-                    // 成功后延迟跳转到对应页面
+                    // 成功后延迟跳转到登录页面
                     setTimeout(() => {
-                        switch(currentRegisterType) {
-                            case 'user':
-                                window.location.href = 'shippers.html';
-                                break;
-                            case 'carrier':
-                                window.location.href = 'carrier.html';
-                                break;
-                            default:
-                                window.location.href = 'login.html';
-                        }
+                        window.location.href = 'login.html';
                     }, 2000);
                 } else {
                     messageDiv.className = 'message error';

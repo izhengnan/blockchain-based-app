@@ -103,8 +103,8 @@ org/example/shipment/utils/JwtUtils.java
  org.example.shipment.utils.JwtUtils
 org/example/shipment/dto/LoginInfo.java
  org.example.shipment.dto.LoginInfo
-org/example/shipment/service/backend/ShipmentBackendService.java
- org.example.shipment.service.backend.ShipmentBackendService
+org/example/shipment/service/backend/CarrierBackendService.java
+ org.example.shipment.service.backend.CarrierBackendService
 org/example/shipment/service/backend/AdminBackendService.java
  org.example.shipment.service.backend.AdminBackendService
 org/example/shipment/model/bo/shipment1118GetStatusInputBO.java
@@ -133,8 +133,8 @@ org/example/shipment/model/bo/shipment1118DeleteUserInputBO.java
  org.example.shipment.model.bo.shipment1118DeleteUserInputBO
 org/example/shipment/dto/Carrier.java
  org.example.shipment.dto.Carrier
-org/example/shipment/controller/ShipmentController.java
- org.example.shipment.controller.ShipmentController
+org/example/shipment/controller/CarrierController.java
+ org.example.shipment.controller.CarrierController
 org/example/shipment/config/SystemConfig.java
  org.example.shipment.config.SystemConfig
 org/example/shipment/utils/IOUtil.java
@@ -159,9 +159,9 @@ org/example/shipment/model/bo/shipment1118GetShipmentInputBO.java
  org.example.shipment.model.bo.shipment1118GetShipmentInputBO
 org/example/shipment/model/bo/shipment1118GetShipmentsByCarrierInputBO.java
  org.example.shipment.model.bo.shipment1118GetShipmentsByCarrierInputBO
-org/example/shipment/controller/CarrierController.java
- org.example.shipment.controller.CarrierController
-org/example/shipment/service/backend/CarrierBackendService.java
- org.example.shipment.service.backend.CarrierBackendService
+org/example/shipment/controller/ShipmentController.java
+ org.example.shipment.controller.ShipmentController
+org/example/shipment/service/backend/ShipmentBackendService.java
+ org.example.shipment.service.backend.ShipmentBackendService
 org/example/shipment/service/backend/impl/ShipmentBackendServiceImpl.java
  org.example.shipment.service.backend.impl.ShipmentBackendServiceImpl

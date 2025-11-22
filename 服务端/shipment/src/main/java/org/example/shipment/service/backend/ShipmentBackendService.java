@@ -21,4 +21,6 @@ public interface ShipmentBackendService {
     String getShipmentStatusById(BigInteger id);
 
     List<Shipment> getShipmentByUserId(BigInteger userId);
+
+    List<Shipment> getShipmentByUserIdAndCarrierId(BigInteger userId, BigInteger carrierId);
 }

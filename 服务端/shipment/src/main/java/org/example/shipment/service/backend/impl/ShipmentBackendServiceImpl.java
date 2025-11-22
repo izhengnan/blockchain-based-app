@@ -73,30 +73,40 @@ public class ShipmentBackendServiceImpl implements ShipmentBackendService {
         log.info("获取所有运输记录");
         try {
             Shipment1118 shipment1118 = Shipment1118.load(contractAddress, client, client.getCryptoSuite().getCryptoKeyPair());
+            
+            // 获取所有物流记录的ID列表
             org.fisco.bcos.sdk.abi.datatypes.generated.tuples.generated.Tuple6<List<BigInteger>, List<BigInteger>, List<BigInteger>, List<String>, List<String>, List<String>> result = 
                 shipment1118.getAllShipments();
             
             List<BigInteger> ids = result.getValue1();
-            List<BigInteger> userIds = result.getValue2();
-            List<BigInteger> carriers = result.getValue3();
-            List<String> froms = result.getValue4();
-            List<String> tos = result.getValue5();
-            List<String> statuses = result.getValue6();
-            
             List<Shipment> shipments = new ArrayList<>();
-            for (int i = 0; i < ids.size(); i++) {
-                Shipment shipment = new Shipment(
-                    ids.get(i),
-                    userIds.get(i),
-                    carriers.get(i),
-                    froms.get(i),
-                    tos.get(i),
-                    statuses.get(i),
-                    LocalDateTime.now(),
-                    LocalDateTime.now()
-                );
-                shipments.add(shipment);
+            
+            // 对每个ID调用getShipment方法获取完整信息，包括链上的时间戳
+            for (BigInteger id : ids) {
+                try {
+                    // 获取完整的物流信息，包括创建时间和修改时间
+                    org.fisco.bcos.sdk.abi.datatypes.generated.tuples.generated.Tuple8<BigInteger, BigInteger, BigInteger, String, String, String, BigInteger, BigInteger> shipmentResult = 
+                        shipment1118.getShipment(id);
+                    
+                    // 创建Shipment对象，使用链上的时间戳
+                    Shipment shipment = new Shipment(
+                        shipmentResult.getValue1(),
+                        shipmentResult.getValue2(),
+                        shipmentResult.getValue3(),
+                        shipmentResult.getValue4(),
+                        shipmentResult.getValue5(),
+                        shipmentResult.getValue6(),
+                        // 转换链上时间戳为LocalDateTime
+                        LocalDateTime.ofInstant(Instant.ofEpochMilli(shipmentResult.getValue7().longValue()), java.time.ZoneOffset.UTC),
+                        LocalDateTime.ofInstant(Instant.ofEpochMilli(shipmentResult.getValue8().longValue()), java.time.ZoneOffset.UTC)
+                    );
+                    shipments.add(shipment);
+                } catch (Exception e) {
+                    log.error("获取ID为 {} 的运输记录失败：{}", id, e.getMessage());
+                    // 继续处理下一个记录
+                }
             }
+            
             log.info("获取所有运输记录成功，共找到 {} 条记录", shipments.size());
             return shipments;
         } catch (Exception e) {
@@ -186,8 +196,22 @@ public class ShipmentBackendServiceImpl implements ShipmentBackendService {
                 userShipments.add(shipment);
             }
         }
-        log.info("根据用户ID获取运输记录成功，共找到 {} 条记录，用户ID：{}", 
-            userShipments.size(), userId);
+        log.info("根据用户ID获取运输记录成功，共找到 {} 条记录，用户ID：{},数据为：{}",userShipments.size(), userId, userShipments);
         return userShipments;
+    }
+
+    @Override
+    public List<Shipment> getShipmentByUserIdAndCarrierId(BigInteger userId, BigInteger carrierId) {
+        log.info("根据用户ID和承运商ID获取运输记录：userId={}, carrierId={}", userId, carrierId);
+        //先查询所有的运输记录，然后根据用户ID与承运商ID过滤
+        List<Shipment> shipments = getShipmentByUserId(userId);
+        List<Shipment> userCarrierShipments = new ArrayList<>();
+        for (Shipment shipment : shipments) {
+            if (shipment.getCarrier().equals(carrierId)) {
+                userCarrierShipments.add(shipment);
+            }
+        }
+        log.info("根据用户ID和承运商ID获取运输记录成功，共找到 {} 条记录，用户ID：{},承运商ID：{},数据为：{}", userCarrierShipments.size(), userId, carrierId, userCarrierShipments);
+        return userCarrierShipments;
     }
 }

@@ -91,5 +91,12 @@ public class ShipmentController {
         List<Shipment> listShipment = shipmentBackendService.getShipmentByUserId(userId);
         return listShipment == null ? CommonResponse.fail("404", new Exception("物流不存在")) : CommonResponse.ok(listShipment);
     }
+    //根据用户id与承运商id查询物流
+    @CrossOrigin
+    @GetMapping("/getByUserIdAndCarrierId")
+    public CommonResponse GetShipmentByUserIdAndCarrierId(@RequestParam BigInteger userId, @RequestParam BigInteger carrierId) {
+        List<Shipment> listShipment = shipmentBackendService.getShipmentByUserIdAndCarrierId(userId, carrierId);
+        return listShipment == null ? CommonResponse.fail("404", new Exception("物流不存在")) : CommonResponse.ok(listShipment);
+    }
 
 }

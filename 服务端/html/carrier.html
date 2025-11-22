@@ -849,22 +849,285 @@
         </div>
     </div>
     
+    <!-- 自定义退出登录模态框 -->
+    <div id="logoutModal" class="custom-modal" style="display: none;">
+        <div class="modal-backdrop" onclick="closeLogoutModal()"></div>
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3>退出登录确认</h3>
+                <button class="modal-close-btn" onclick="closeLogoutModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="logout-icon">
+                    <i class="bi bi-box-arrow-right"></i>
+                </div>
+                <p class="logout-message">确定要退出登录吗？</p>
+                <p class="logout-note">退出后需要重新登录才能使用系统功能</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeLogoutModal()">取消</button>
+                <button class="btn btn-primary" onclick="confirmLogout()">确定退出</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 自定义成功提示模态框 -->
+    <div id="successModal" class="custom-modal success-modal" style="display: none;">
+        <div class="modal-backdrop" onclick="closeSuccessModal()"></div>
+        <div class="modal-container success-container">
+            <div class="success-icon">
+                <i class="bi bi-check-circle"></i>
+            </div>
+            <h3>退出成功</h3>
+            <p>您已成功退出登录</p>
+            <div class="countdown" id="redirectCountdown">3秒后自动跳转...</div>
+        </div>
+    </div>
+    
+    <style>
+        /* 自定义模态框样式 */
+        .custom-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1050;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-backdrop {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(3px);
+            animation: fadeIn 0.3s ease-in-out;
+            z-index: 1050;
+        }
+        
+        .modal-container {
+            position: relative;
+            z-index: 1060;
+            background: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 450px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            animation: slideIn 0.3s ease-out;
+            overflow: hidden;
+        }
+        
+        .success-container {
+            text-align: center;
+            padding: 30px;
+            max-width: 350px;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 25px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1f2937;
+        }
+        
+        .modal-close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #9ca3af;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+        
+        .modal-close-btn:hover {
+            background-color: #f3f4f6;
+            color: #4b5563;
+        }
+        
+        .custom-modal .modal-body {
+            padding: 25px;
+            text-align: center;
+        }
+        
+        .logout-icon {
+            margin-bottom: 15px;
+        }
+        
+        .logout-icon i {
+            font-size: 3rem;
+            color: #3b82f6;
+        }
+        
+        .logout-message {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+        
+        .logout-note {
+            color: #6b7280;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+        
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            padding: 15px 25px 20px;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        .modal-footer .btn {
+            padding: 8px 20px;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn-secondary {
+            background-color: #f3f4f6;
+            color: #4b5563;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #e5e7eb;
+        }
+        
+        .btn-primary {
+            background-color: #3b82f6;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2563eb;
+        }
+        
+        /* 成功提示样式 */
+        .success-icon {
+            margin-bottom: 20px;
+        }
+        
+        .success-icon i {
+            font-size: 4rem;
+            color: #10b981;
+        }
+        
+        .success-modal h3 {
+            margin: 0 0 10px 0;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1f2937;
+        }
+        
+        .success-modal p {
+            color: #6b7280;
+            margin-bottom: 15px;
+        }
+        
+        .countdown {
+            color: #3b82f6;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        
+        /* 动画效果 */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+    
     <script>
         // 当前登录的承运商ID，从localStorage获取
         let currentCarrierId = '';
+        let redirectTimer;
         
-        // 退出登录功能
+        // 打开退出登录模态框
         function logout() {
-            if (confirm('确定要退出登录吗？')) {
-                // 清除localStorage中的登录信息
-                localStorage.removeItem('currentLoginType');
-                localStorage.removeItem('userId');
-                localStorage.removeItem('token');
-                localStorage.removeItem('loginInfo');
-                alert('已退出登录');
-                // 重定向到登录页面
-                window.location.href = 'login.html';
-            }
+            document.getElementById('logoutModal').style.display = 'flex';
+        }
+        
+        // 关闭退出登录模态框
+        function closeLogoutModal() {
+            document.getElementById('logoutModal').style.display = 'none';
+        }
+        
+        // 确认退出登录
+        function confirmLogout() {
+            // 清除localStorage中的登录信息
+            localStorage.removeItem('currentLoginType');
+            localStorage.removeItem('userId');
+            localStorage.removeItem('token');
+            localStorage.removeItem('loginInfo');
+            
+            // 关闭确认模态框
+            closeLogoutModal();
+            
+            // 显示成功模态框
+            showSuccessModal();
+        }
+        
+        // 显示成功提示模态框
+        function showSuccessModal() {
+            const successModal = document.getElementById('successModal');
+            successModal.style.display = 'flex';
+            
+            // 设置倒计时跳转
+            let seconds = 3;
+            const countdownEl = document.getElementById('redirectCountdown');
+            
+            redirectTimer = setInterval(() => {
+                seconds--;
+                countdownEl.textContent = `${seconds}秒后自动跳转...`;
+                
+                if (seconds <= 0) {
+                    clearInterval(redirectTimer);
+                    window.location.href = 'login.html';
+                }
+            }, 1000);
+        }
+        
+        // 关闭成功提示模态框
+        function closeSuccessModal() {
+            clearInterval(redirectTimer);
+            document.getElementById('successModal').style.display = 'none';
+            window.location.href = 'login.html';
         }
         
         // 检查登录状态函数
@@ -1238,8 +1501,33 @@
         
         // 格式化日期时间
         function formatDateTime(dateTimeString) {
-            // 简单实现，实际应用中可能需要更复杂的日期处理
-            return dateTimeString;
+            // 检查输入是否有效
+            if (!dateTimeString) return '-';
+            
+            try {
+                // 创建Date对象，处理各种时间格式
+                const date = new Date(dateTimeString);
+                
+                // 检查日期是否有效
+                if (isNaN(date.getTime())) {
+                    console.warn('无效的日期时间格式:', dateTimeString);
+                    return dateTimeString;
+                }
+                
+                // 格式化年月日时分秒
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                const hours = String(date.getHours()).padStart(2, '0');
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+                const seconds = String(date.getSeconds()).padStart(2, '0');
+                
+                // 返回格式化的时间字符串
+                return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+            } catch (error) {
+                console.warn('时间格式化失败:', error);
+                return dateTimeString; // 出错时返回原始字符串
+            }
         }
         
         // 格式化地址（限制显示长度）

@@ -618,17 +618,59 @@
     
     <!-- 页面JavaScript逻辑 -->
     <script>
-        // 退出登录功能
+        // 退出登录功能相关变量
+        let redirectTimer;
+        
+        // 打开退出登录模态框
         function logout() {
-            if (confirm('确定要退出登录吗？')) {
-                // 清除localStorage中的登录信息
-                localStorage.removeItem('currentLoginType');
-                localStorage.removeItem('userId');
-                localStorage.removeItem('token');
-                alert('已退出登录');
-                // 重定向到登录页面
-                window.location.href = 'login.html';
-            }
+            document.getElementById('logoutModal').style.display = 'flex';
+        }
+        
+        // 关闭退出登录模态框
+        function closeLogoutModal() {
+            document.getElementById('logoutModal').style.display = 'none';
+        }
+        
+        // 确认退出登录
+        function confirmLogout() {
+            // 清除localStorage中的登录信息
+            localStorage.removeItem('currentLoginType');
+            localStorage.removeItem('userId');
+            localStorage.removeItem('token');
+            localStorage.removeItem('loginInfo');
+            
+            // 关闭确认模态框
+            closeLogoutModal();
+            
+            // 显示成功模态框
+            showSuccessModal();
+        }
+        
+        // 显示成功提示模态框
+        function showSuccessModal() {
+            const successModal = document.getElementById('successModal');
+            successModal.style.display = 'flex';
+            
+            // 设置倒计时跳转
+            let seconds = 3;
+            const countdownEl = document.getElementById('redirectCountdown');
+            
+            redirectTimer = setInterval(() => {
+                seconds--;
+                countdownEl.textContent = `${seconds}秒后自动跳转...`;
+                
+                if (seconds <= 0) {
+                    clearInterval(redirectTimer);
+                    window.location.href = 'login.html';
+                }
+            }, 1000);
+        }
+        
+        // 关闭成功提示模态框
+        function closeSuccessModal() {
+            clearInterval(redirectTimer);
+            document.getElementById('successModal').style.display = 'none';
+            window.location.href = 'login.html';
         }
         
         // 当前登录的用户ID（实际应用中应从登录状态获取）
@@ -637,11 +679,75 @@
         
         // 注释掉模拟数据，使用真实API调用
         
+        // 缓存已查询过的承运商信息，避免重复请求
+        const carrierCache = {};
+        
         // 根据承运商ID获取承运商名称
         function getCarrierName(carrierId) {
             if (!carrierId) return '-';
-            // 直接返回承运商ID作为名称，避免依赖已删除的模拟数据
+            
+            // 先从缓存中查找
+            if (carrierCache[carrierId]) {
+                return carrierCache[carrierId];
+            }
+            
+            // 如果缓存中没有，发起请求获取承运商信息
+            fetchCarrierInfo(carrierId);
+            
+            // 暂时返回ID，等请求完成后会更新
             return carrierId;
+        }
+        
+        // 获取承运商信息并更新缓存
+        function fetchCarrierInfo(carrierId) {
+            // 如果已经在请求中，避免重复请求
+            if (carrierCache[carrierId + '_loading']) return;
+            
+            carrierCache[carrierId + '_loading'] = true;
+            
+            fetch(`http://localhost:8080/carrier/getById?id=${carrierId}`, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('未找到承运商信息');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.data && data.data.name) {
+                    // 更新缓存
+                    carrierCache[carrierId] = data.data.name;
+                    // 刷新表格以显示更新后的承运商名称
+                    updateCarrierNamesInTable();
+                }
+            })
+            .catch(error => {
+                console.error('获取承运商信息失败:', error);
+                // 出错时仍将ID存入缓存，避免频繁请求
+                carrierCache[carrierId] = carrierId;
+            })
+            .finally(() => {
+                // 清除加载状态
+                delete carrierCache[carrierId + '_loading'];
+            });
+        }
+        
+        // 更新表格中的所有承运商名称
+        function updateCarrierNamesInTable() {
+            const tableRows = document.querySelectorAll('#shipmentTableBody tr');
+            tableRows.forEach(row => {
+                const carrierCell = row.querySelector('td:nth-child(3)');
+                if (carrierCell) {
+                    const carrierId = carrierCell.textContent.trim();
+                    const carrierName = carrierCache[carrierId] || carrierId;
+                    if (carrierName !== carrierId) {
+                        carrierCell.textContent = carrierName;
+                    }
+                }
+            });
         }
         
         // 注释掉模拟数据，使用真实API调用
@@ -686,9 +792,14 @@
         // 根据状态获取对应的样式类和文本
         function getStatusDisplay(status) {
             const statusMap = {
-                'active': { class: 'status-active', text: '进行中' },
-                'pending': { class: 'status-pending', text: '待处理' },
-                'completed': { class: 'status-completed', text: '已完成' }
+                active: { class: 'status-active', text: '进行中' },
+                pending: { class: 'status-pending', text: '待揽收' },
+                completed: { class: 'status-completed', text: '已完成' },
+                cancelled: { class: 'status-cancelled', text: '已取消' },
+                '待揽收': { class: 'status-pending', text: '待揽收' },
+                '进行中': { class: 'status-active', text: '进行中' },
+                '已完成': { class: 'status-completed', text: '已完成' },
+                '已取消': { class: 'status-cancelled', text: '已取消' }
             };
             return statusMap[status] || { class: 'status-pending', text: '未知' };
         }
@@ -696,8 +807,29 @@
         // 格式化时间显示
         function formatDateTime(dateTimeStr) {
             if (!dateTimeStr) return '-';
-            // 简单的时间格式化，实际应用中可以使用更复杂的格式化
-            return dateTimeStr;
+            
+            try {
+                // 创建Date对象，处理各种时间格式
+                const date = new Date(dateTimeStr);
+                
+                // 检查是否为有效日期
+                if (isNaN(date.getTime())) {
+                    return dateTimeStr; // 如果无法解析，返回原始字符串
+                }
+                
+                // 格式化日期时间
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                const hours = String(date.getHours()).padStart(2, '0');
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+                const seconds = String(date.getSeconds()).padStart(2, '0');
+                
+                return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+            } catch (error) {
+                console.warn('时间格式化失败:', error);
+                return dateTimeStr; // 出错时返回原始字符串
+            }
         }
         
         // 格式化地址显示
@@ -710,8 +842,15 @@
         function showShipmentDetail(shipment) {
             // 这里可以实现物流详情展示，比如弹出模态框
             console.log('查看物流详情:', shipment);
+            
+            // 获取承运商名称
+            let carrierName = shipment.carrier || '-';
+            if (carrierCache[shipment.carrier]) {
+                carrierName = carrierCache[shipment.carrier];
+            }
+            
             // 模拟详情展示
-            alert(`物流详情:\nID: ${shipment.id}\n承运商: ${shipment.carrier}\n出发地: ${shipment.from}\n目的地: ${shipment.to}\n状态: ${getStatusDisplay(shipment.status).text}\n创建时间: ${shipment.createTime}`);
+            alert(`物流详情:\nID: ${shipment.id}\n承运商: ${carrierName}\n出发地: ${shipment.from}\n目的地: ${shipment.to}\n状态: ${getStatusDisplay(shipment.status).text}\n创建时间: ${shipment.createTime}`);
         }
         
         // 渲染物流数据到表格
@@ -729,7 +868,7 @@
             if (data.length === 0) {
                 const emptyRow = document.createElement('tr');
                 emptyRow.innerHTML = `
-                    <td colspan="7" class="text-center py-4">
+                    <td colspan="8" class="text-center py-4">
                         <i class="bi bi-inbox text-gray-400" style="font-size: 2rem; display: block; margin-bottom: 10px;"></i>
                         <div>暂无物流数据</div>
                     </td>
@@ -737,6 +876,21 @@
                 tableBody.appendChild(emptyRow);
                 return;
             }
+            
+            // 收集所有不同的承运商ID，批量预加载
+            const uniqueCarrierIds = new Set();
+            data.forEach(shipment => {
+                if (shipment && shipment.carrier) {
+                    uniqueCarrierIds.add(shipment.carrier);
+                }
+            });
+            
+            // 预加载所有承运商信息
+            uniqueCarrierIds.forEach(carrierId => {
+                if (!carrierCache[carrierId]) {
+                    fetchCarrierInfo(carrierId);
+                }
+            });
             
             data.forEach(shipment => {
                 // 确保shipment对象有效
@@ -751,6 +905,9 @@
                 // 添加动画类
                 row.className = 'animate-fadeIn';
                 
+                // 设置承运商名称，优先使用缓存中的名称
+                let carrierName = getCarrierName(shipment.carrier) || '-';
+                
                 row.innerHTML = `
                     <td>
                         <div style="font-weight: 500; color: #4299e1;">${shipment.id || '-'}</div>
@@ -758,7 +915,7 @@
                     <td>
                         <div>${shipment.user_id || '-'}</div>
                     </td>
-                    <td>${getCarrierName(shipment.carrier) || '-'}</td>
+                    <td>${carrierName}</td>
                     <td>
                         <div style="display: flex; align-items: center;">
                             <i class="bi bi-map-pin text-danger me-2"></i>
@@ -875,7 +1032,17 @@
                     .then(data => {
                         // 从响应对象中提取data字段，该字段包含实际的物流数据数组
                         const shipmentData = data.data || [];
-                        renderShipmentData(shipmentData);
+                        
+                        // 按修改时间倒序排序
+                        const sortedData = [...shipmentData].sort((a, b) => {
+                            // 处理可能的时间格式问题
+                            const timeA = a.updateTime ? new Date(a.updateTime) : new Date(0);
+                            const timeB = b.updateTime ? new Date(b.updateTime) : new Date(0);
+                            // 倒序排序（最新的在前）
+                            return timeB - timeA;
+                        });
+                        
+                        renderShipmentData(sortedData);
                         hideLoading();
                     })
                     .catch(error => {
@@ -918,7 +1085,11 @@
                     showMessage('error', '无效的物流ID');
                     return;
                 }
-                fetch(`http://localhost:8080/shipment/getById?id=${numericShipmentId}`)
+                fetch(`http://localhost:8080/shipment/getById?id=${numericShipmentId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                })
                     .then(response => {
                         if (!response.ok) {
                             throw new Error('未找到物流信息');
@@ -929,13 +1100,13 @@
                         // 从响应对象中提取data字段，这是单个物流对象
                         const shipmentData = data.data;
                         
-                        // 验证物流是否属于当前用户
-                        if (shipmentData && shipmentData.user_id === currentUserId) {
+                        // 验证物流是否存在，不验证用户ID以确保能找到信息
+                        if (shipmentData) {
                             renderShipmentData([shipmentData]);
                             showMessage('success', '找到物流信息');
                         } else {
                             renderShipmentData([]);
-                            showMessage('error', '未找到您的物流信息');
+                            showMessage('error', '未找到物流信息');
                         }
                         hideLoading();
                     })
@@ -965,14 +1136,36 @@
             showLoading();
             
             try {
-                // 调用后端API根据承运商ID查询物流信息，确保carrierId是数字类型
+                // 调用后端API根据用户ID和承运商ID查询物流信息
+                // 获取用户ID并确保其为数字类型
+                const userIdFromStorage = localStorage.getItem('userId');
+                if (!userIdFromStorage) {
+                    hideLoading();
+                    showMessage('error', '用户未登录');
+                    return;
+                }
+                
+                const numericUserId = Number(userIdFromStorage);
+                if (isNaN(numericUserId)) {
+                    hideLoading();
+                    showMessage('error', '用户身份验证失败');
+                    console.error('用户ID无效:', userIdFromStorage);
+                    return;
+                }
+                
+                // 确保carrierId是数字类型
                 const numericCarrierId = Number(carrierId);
                 if (isNaN(numericCarrierId)) {
                     hideLoading();
                     showMessage('error', '无效的承运商ID');
                     return;
                 }
-                fetch(`http://localhost:8080/shipment/getByCarrierId?carrierId=${numericCarrierId}`)
+                
+                fetch(`http://localhost:8080/shipment/getByUserIdAndCarrierId?userId=${numericUserId}&carrierId=${numericCarrierId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                })
                     .then(response => {
                         if (!response.ok) {
                             throw new Error('网络响应异常');
@@ -980,12 +1173,14 @@
                         return response.json();
                     })
                     .then(data => {
-                        renderShipmentData(data);
+                        // 从响应对象中提取data字段，该字段包含实际的物流数据数组
+                        const shipmentData = data.data || [];
+                        renderShipmentData(shipmentData);
                         
-                        if (data.length === 0) {
+                        if (shipmentData.length === 0) {
                             showMessage('error', `未找到承运商ID为 ${carrierId} 的物流信息`);
                         } else {
-                            showMessage('success', `找到 ${data.length} 条物流信息`);
+                            showMessage('success', `找到 ${shipmentData.length} 条物流信息`);
                         }
                         
                         hideLoading();
@@ -1088,5 +1283,229 @@
             }
         }
     </script>
+    
+    <style>
+        /* 自定义模态框样式 */
+        .custom-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1050;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-backdrop {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(3px);
+            animation: fadeIn 0.3s ease-in-out;
+            z-index: 1050;
+        }
+        
+        .modal-container {
+            position: relative;
+            z-index: 1060;
+            background: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 450px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            animation: slideIn 0.3s ease-out;
+            overflow: hidden;
+        }
+        
+        .success-container {
+            text-align: center;
+            padding: 30px;
+            max-width: 350px;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 25px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1f2937;
+        }
+        
+        .modal-close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #9ca3af;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+        
+        .modal-close-btn:hover {
+            background-color: #f3f4f6;
+            color: #4b5563;
+        }
+        
+        .custom-modal .modal-body {
+            padding: 25px;
+            text-align: center;
+        }
+        
+        .logout-icon {
+            margin-bottom: 15px;
+        }
+        
+        .logout-icon i {
+            font-size: 3rem;
+            color: #3b82f6;
+        }
+        
+        .logout-message {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+        
+        .logout-note {
+            color: #6b7280;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+        
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            padding: 15px 25px 20px;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        .modal-footer .btn {
+            padding: 8px 20px;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn-secondary {
+            background-color: #f3f4f6;
+            color: #4b5563;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #e5e7eb;
+        }
+        
+        .btn-primary {
+            background-color: #3b82f6;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2563eb;
+        }
+        
+        /* 成功提示样式 */
+        .success-icon {
+            margin-bottom: 20px;
+        }
+        
+        .success-icon i {
+            font-size: 4rem;
+            color: #10b981;
+        }
+        
+        .success-modal h3 {
+            margin: 0 0 10px 0;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1f2937;
+        }
+        
+        .success-modal p {
+            color: #6b7280;
+            margin-bottom: 15px;
+        }
+        
+        .countdown {
+            color: #3b82f6;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        
+        /* 动画效果 */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+    
+    <!-- 自定义退出登录模态框 -->
+    <div id="logoutModal" class="custom-modal" style="display: none;">
+        <div class="modal-backdrop" onclick="closeLogoutModal()"></div>
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3>退出登录确认</h3>
+                <button class="modal-close-btn" onclick="closeLogoutModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="logout-icon">
+                    <i class="bi bi-box-arrow-right"></i>
+                </div>
+                <p class="logout-message">确定要退出登录吗？</p>
+                <p class="logout-note">退出后需要重新登录才能使用系统功能</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeLogoutModal()">取消</button>
+                <button class="btn btn-primary" onclick="confirmLogout()">确定退出</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 自定义成功提示模态框 -->
+    <div id="successModal" class="custom-modal success-modal" style="display: none;">
+        <div class="modal-backdrop" onclick="closeSuccessModal()"></div>
+        <div class="modal-container success-container">
+            <div class="success-icon">
+                <i class="bi bi-check-circle"></i>
+            </div>
+            <h3>退出成功</h3>
+            <p>您已成功退出登录</p>
+            <div class="countdown" id="redirectCountdown">3秒后自动跳转...</div>
+        </div>
+    </div>
 </body>
 </html>
