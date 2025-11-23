@@ -95,8 +95,8 @@ org/example/shipment/Application.java
  org.example.shipment.Application
 org/example/shipment/model/bo/shipment1118CheckUserInputBO.java
  org.example.shipment.model.bo.shipment1118CheckUserInputBO
-org/example/shipment/service/backend/impl/AdminBackendServiceImpl.java
- org.example.shipment.service.backend.impl.AdminBackendServiceImpl
+org/example/shipment/controller/ShipmentController.java
+ org.example.shipment.controller.ShipmentController
 org/example/shipment/model/CommonResponse.java
  org.example.shipment.model.CommonResponse
 org/example/shipment/utils/JwtUtils.java
@@ -105,8 +105,8 @@ org/example/shipment/dto/LoginInfo.java
  org.example.shipment.dto.LoginInfo
 org/example/shipment/service/backend/CarrierBackendService.java
  org.example.shipment.service.backend.CarrierBackendService
-org/example/shipment/service/backend/AdminBackendService.java
- org.example.shipment.service.backend.AdminBackendService
+org/example/shipment/service/backend/ShipmentBackendService.java
+ org.example.shipment.service.backend.ShipmentBackendService
 org/example/shipment/model/bo/shipment1118GetStatusInputBO.java
  org.example.shipment.model.bo.shipment1118GetStatusInputBO
 org/example/shipment/model/bo/shipment1118GetUserByIdInputBO.java
@@ -119,8 +119,8 @@ org/example/shipment/service/backend/impl/UserBackendServiceImpl.java
  org.example.shipment.service.backend.impl.UserBackendServiceImpl
 org/example/shipment/model/bo/shipment1118UpdateCarrierInfoInputBO.java
  org.example.shipment.model.bo.shipment1118UpdateCarrierInfoInputBO
-org/example/shipment/controller/AdminController.java
- org.example.shipment.controller.AdminController
+org/example/shipment/service/backend/impl/ShipmentBackendServiceImpl.java
+ org.example.shipment.service.backend.impl.ShipmentBackendServiceImpl
 org/example/shipment/model/bo/shipment1118UpdateUserPasswordInputBO.java
  org.example.shipment.model.bo.shipment1118UpdateUserPasswordInputBO
 org/example/shipment/model/bo/shipment1118DeleteShipmentInputBO.java
@@ -159,9 +159,9 @@ org/example/shipment/model/bo/shipment1118GetShipmentInputBO.java
  org.example.shipment.model.bo.shipment1118GetShipmentInputBO
 org/example/shipment/model/bo/shipment1118GetShipmentsByCarrierInputBO.java
  org.example.shipment.model.bo.shipment1118GetShipmentsByCarrierInputBO
-org/example/shipment/controller/ShipmentController.java
- org.example.shipment.controller.ShipmentController
-org/example/shipment/service/backend/ShipmentBackendService.java
- org.example.shipment.service.backend.ShipmentBackendService
-org/example/shipment/service/backend/impl/ShipmentBackendServiceImpl.java
- org.example.shipment.service.backend.impl.ShipmentBackendServiceImpl
+org/example/shipment/controller/AdminController.java
+ org.example.shipment.controller.AdminController
+org/example/shipment/service/backend/AdminBackendService.java
+ org.example.shipment.service.backend.AdminBackendService
+org/example/shipment/service/backend/impl/AdminBackendServiceImpl.java
+ org.example.shipment.service.backend.impl.AdminBackendServiceImpl

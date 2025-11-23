@@ -684,7 +684,7 @@
         }
         
         .modal-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(45deg, #34495e, #2c3e50);
             color: white;
             border: none;
             padding: 25px 30px;
@@ -896,7 +896,6 @@
                         <table class="table table-hover mb-0">
                             <thead>
                                 <tr>
-                                    <th><i class="bi bi-hash"></i> 序号</th>
                                     <th><i class="bi bi-person-badge"></i> 承运商ID</th>
                                     <th><i class="bi bi-person"></i> 承运商名称</th>
                                     <th><i class="bi bi-info-circle"></i> 介绍</th>
@@ -935,36 +934,33 @@
                 </div>
                 <div class="modal-body">
                     <form id="addCarrierForm">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="carrierName" class="form-label">
-                                        <i class="bi bi-person"></i> 承运商名称
-                                    </label>
-                                    <input type="text" class="form-control" id="carrierName" name="name" 
-                                           placeholder="请输入承运商名称" required>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="carrierPassword" class="form-label">
-                                        <i class="bi bi-lock"></i> 登录密码
-                                    </label>
-                                    <input type="password" class="form-control" id="carrierPassword" name="passwd" 
-                                           placeholder="请输入登录密码" required>
-                                </div>
-                            </div>
+                        <div class="col-12 mb-3">
+                            <label for="carrierName" class="form-label">
+                                <i class="bi bi-person"></i> 承运商名称
+                            </label>
+                            <input type="text" class="form-control" id="carrierName" name="name" 
+                                   placeholder="请输入承运商名称" required>
                         </div>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="confirmCarrierPassword" class="form-label">
-                                        <i class="bi bi-lock-fill"></i> 确认密码
-                                    </label>
-                                    <input type="password" class="form-control" id="confirmCarrierPassword" 
-                                           placeholder="请再次输入密码" required>
-                                </div>
-                            </div>
+                        <div class="col-12 mb-3">
+                            <label for="carrierInfo" class="form-label">
+                                <i class="bi bi-info-circle"></i> 承运商介绍
+                            </label>
+                            <input type="text" class="form-control" id="carrierInfo" name="info" 
+                                   placeholder="请输入承运商介绍（选填）">
+                        </div>
+                        <div class="col-12 mb-3">
+                            <label for="carrierPassword" class="form-label">
+                                <i class="bi bi-lock"></i> 登录密码
+                            </label>
+                            <input type="password" class="form-control" id="carrierPassword" name="passwd" 
+                                   placeholder="请输入登录密码" required>
+                        </div>
+                        <div class="col-12 mb-3">
+                            <label for="confirmCarrierPassword" class="form-label">
+                                <i class="bi bi-lock-fill"></i> 确认密码
+                            </label>
+                            <input type="password" class="form-control" id="confirmCarrierPassword" 
+                                   placeholder="请再次输入密码" required>
                         </div>
                     </form>
                 </div>
@@ -1036,6 +1032,11 @@
         
         // 初始化页面
         document.addEventListener('DOMContentLoaded', function() {
+            // 显示当前登录的管理员账号
+            const account = localStorage.getItem('account');
+            if (account) {
+                document.getElementById('currentUsername').textContent = account;
+            }
             loadCarrierList();
         });
         
@@ -1069,26 +1070,12 @@
                 isSearching = false;
                 currentPage = page;
                 
-                // 模拟数据 - 替换API调用
-                const mockData = {
-                    code: 200,
-                    data: [
-                        { id: 'carrier001', name: '顺丰速运', info: '国内知名快递物流企业，提供高效安全的物流服务' },
-                        { id: 'carrier002', name: '中通快递', info: '覆盖全国的快递网络，价格合理，服务可靠' },
-                        { id: 'carrier003', name: '韵达快递', info: '专注于电商配送，时效性强，性价比高' }
-                    ]
-                };
-                
-                // 模拟API响应延迟
-                await new Promise(resolve => setTimeout(resolve, 500));
-                
-                allCarriers = mockData.data || [];
-                totalPages = Math.ceil(allCarriers.length / pageSize);
-                displayCarriers();
-                renderPagination();
-                
-                /* 注释掉实际API调用
-                const response = await fetch(`${API_BASE_URL}/list`);
+                // 已注释模拟数据，现在使用实际API调用
+                const response = await fetch(`${API_BASE_URL}/list`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
                 const result = await response.json();
                 
                 if (result.code === '0') {
@@ -1099,7 +1086,6 @@
                 } else {
                     showMessage('加载承运商列表失败: ' + (result.message || '未知错误'), 'error');
                 }
-                */
             } catch (error) {
                 console.error('加载承运商列表失败:', error);
                 showMessage('加载承运商列表失败，请检查网络连接', 'error');
@@ -1117,19 +1103,18 @@
             
             if (pageCarriers.length === 0) {
                 tbody.innerHTML = `
-                    <tr>
-                        <td colspan="5" class="text-center py-4">
-                            <i class="bi bi-inbox" style="font-size: 2rem; color: #ccc;"></i>
-                            <div class="mt-2">暂无数据</div>
-                        </td>
-                    </tr>
-                `;
+                <tr>
+                    <td colspan="4" class="text-center py-4">
+                        <i class="bi bi-inbox" style="font-size: 2rem; color: #ccc;"></i>
+                        <div class="mt-2">暂无数据</div>
+                    </td>
+                </tr>
+            `;
                 return;
             }
             
             tbody.innerHTML = pageCarriers.map((carrier, index) => `
                 <tr>
-                    <td>${startIndex + index + 1}</td>
                     <td>${carrier.id || '-'}</td>
                     <td>${carrier.name || '-'}</td>
                     <td>${carrier.info || '-'}</td>
@@ -1238,7 +1223,11 @@
                 toggleLoading(true);
                 isSearching = true;
                 
-                const response = await fetch(`${API_BASE_URL}/getById?id=${carrierId}`);
+                const response = await fetch(`${API_BASE_URL}/getById?id=${carrierId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
                 const result = await response.json();
                 
                 if (result.code === '0') {
@@ -1279,6 +1268,7 @@
             const formData = new FormData(form);
             
             const name = formData.get('name');
+            const info = formData.get('info');
             const passwd = formData.get('passwd');
             const confirmPassword = document.getElementById('confirmCarrierPassword').value;
             
@@ -1292,8 +1282,9 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
                     },
-                    body: JSON.stringify({ name, passwd })
+                    body: JSON.stringify({ name, info, passwd })
                 });
                 
                 const result = await response.json();
@@ -1343,6 +1334,7 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
                     },
                     body: JSON.stringify({ 
                         id: carrierId,
@@ -1373,7 +1365,10 @@
             }
             
             fetch(`${API_BASE_URL}/delete?id=${id}`, {
-                method: 'DELETE'
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
             })
             .then(response => response.json())
             .then(result => {

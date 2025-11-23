@@ -1,6 +1,7 @@
 package org.example.shipment.controller;
 
 import org.example.shipment.dto.Admin;
+import org.example.shipment.dto.LoginInfo;
 import org.example.shipment.model.CommonResponse;
 import org.example.shipment.service.backend.AdminBackendService;
 import org.fisco.bcos.sdk.transaction.model.exception.ContractException;
@@ -30,8 +31,8 @@ public class AdminController {
     @CrossOrigin
     @PostMapping("/check")
     public CommonResponse CheckAdmin(@RequestBody Admin admin) throws ContractException {
-        boolean res = adminBackendService.checkAdmin(admin.getAccount(), admin.getPasswd());
-        if (res) {
+        LoginInfo res = adminBackendService.checkAdmin(admin.getAccount(), admin.getPasswd());
+        if (res != null) {
             return CommonResponse.ok(res);
         }
         return CommonResponse.fail("401", new Exception("账户或密码错误"));

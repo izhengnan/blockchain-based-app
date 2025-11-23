@@ -759,7 +759,6 @@
                         <table class="table table-hover mb-0">
                             <thead>
                                 <tr>
-                                    <th><i class="bi bi-hash"></i> 序号</th>
                                     <th><i class="bi bi-geo-alt"></i> 物流ID</th>
                                     <th><i class="bi bi-person"></i> 用户ID</th>
                                     <th><i class="bi bi-truck"></i> 承运商ID</th>
@@ -1011,8 +1010,14 @@
             window.location.href = '../login.html';
         }
 
-        // 页面加载时获取用户信息
-        window.addEventListener('load', loadUserInfo);
+        // 页面加载时获取用户信息并显示当前登录账号
+        window.addEventListener('load', function() {
+            // 显示当前登录的管理员账号
+            const account = localStorage.getItem('account');
+            if (account) {
+                document.getElementById('currentUsername').textContent = account;
+            }
+        });
         // 全局变量
         let currentPage = 1;
         let pageSize = 10;
@@ -1025,6 +1030,11 @@
         
         // 初始化页面
         document.addEventListener('DOMContentLoaded', function() {
+            // 检查用户是否登录
+            if (!localStorage.getItem('token')) {
+                window.location.href = '../login.html';
+                return;
+            }
             loadShipmentList();
         });
         
@@ -1058,7 +1068,7 @@
                 isSearching = false;
                 currentPage = page;
                 
-                // 模拟数据 - 替换API调用
+                /* 注释掉模拟数据
                 const now = new Date();
                 const yesterday = new Date(now);
                 yesterday.setDate(yesterday.getDate() - 1);
@@ -1079,9 +1089,16 @@
                 totalPages = Math.ceil(allShipments.length / pageSize);
                 displayShipments();
                 renderPagination();
+                */
                 
-                /* 注释掉实际API调用
-                const response = await fetch(`${API_BASE_URL}/list`);
+                // 使用实际API调用
+                const token = localStorage.getItem('token');
+                const response = await fetch(`${API_BASE_URL}/list`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
                 const result = await response.json();
                 
                 if (result.code === '0') {
@@ -1092,7 +1109,6 @@
                 } else {
                     showMessage('加载运单列表失败: ' + (result.message || '未知错误'), 'error');
                 }
-                */
             } catch (error) {
                 console.error('加载运单列表失败:', error);
                 showMessage('加载运单列表失败，请检查网络连接', 'error');
@@ -1102,26 +1118,44 @@
         }
         
         // 格式化时间显示
-        function formatDateTime(dateTime) {
-            if (!dateTime) return '-';
-            const date = new Date(dateTime);
-            return date.toLocaleString('zh-CN', {
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit'
-            });
+        function formatDateTime(dateTimeStr) {
+            if (!dateTimeStr) return '-';
+            
+            try {
+                // 创建Date对象，处理各种时间格式
+                const date = new Date(dateTimeStr);
+                
+                // 检查是否为有效日期
+                if (isNaN(date.getTime())) {
+                    return dateTimeStr; // 如果无法解析，返回原始字符串
+                }
+                
+                // 格式化日期时间
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                const hours = String(date.getHours()).padStart(2, '0');
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+                const seconds = String(date.getSeconds()).padStart(2, '0');
+                
+                return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+            } catch (error) {
+                console.warn('时间格式化失败:', error);
+                return dateTimeStr; // 出错时返回原始字符串
+            }
         }
 
         // 获取状态显示文本和样式
         function getStatusInfo(status) {
             const statusMap = {
-                'pending': { text: '待处理', className: 'status-pending' },
-                'active': { text: '进行中', className: 'status-active' },
-                'delivered': { text: '已送达', className: 'status-delivered' },
-                'cancelled': { text: '已取消', className: 'status-cancelled' }
+                active: { class: 'status-active', text: '进行中' },
+                pending: { class: 'status-pending', text: '待揽收' },
+                completed: { class: 'status-completed', text: '已完成' },
+                cancelled: { class: 'status-cancelled', text: '已取消' },
+                '待揽收': { class: 'status-pending', text: '待揽收' },
+                '进行中': { class: 'status-active', text: '进行中' },
+                '已完成': { class: 'status-completed', text: '已完成' },
+                '已取消': { class: 'status-cancelled', text: '已取消' }
             };
             return statusMap[status] || { text: status || '-', className: '' };
         }
@@ -1129,14 +1163,22 @@
         // 显示运单数据（分页）
         function displayShipments() {
             const tbody = document.getElementById('shipmentTableBody');
+            
+            // 按最后修改时间降序排序
+            const sortedShipments = [...allShipments].sort((a, b) => {
+                const timeA = a.updateTime ? new Date(a.updateTime).getTime() : 0;
+                const timeB = b.updateTime ? new Date(b.updateTime).getTime() : 0;
+                return timeB - timeA; // 降序排序，最新修改的在前
+            });
+            
             const startIndex = (currentPage - 1) * pageSize;
             const endIndex = startIndex + pageSize;
-            const pageShipments = allShipments.slice(startIndex, endIndex);
+            const pageShipments = sortedShipments.slice(startIndex, endIndex);
             
             if (pageShipments.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="10" class="text-center py-4">
+                        <td colspan="9" class="text-center py-4">
                             <i class="bi bi-inbox" style="font-size: 2rem; color: #ccc;"></i>
                             <div class="mt-2">暂无数据</div>
                         </td>
@@ -1149,7 +1191,6 @@
                 const statusInfo = getStatusInfo(shipment.status);
                 return `
                 <tr>
-                    <td>${startIndex + index + 1}</td>
                     <td>${shipment.id || '-'}</td>
                     <td>${shipment.user_id || '-'}</td>
                     <td>${shipment.carrier || '-'}</td>
@@ -1268,7 +1309,13 @@
                 toggleLoading(true);
                 isSearching = true;
                 
-                const response = await fetch(`${API_BASE_URL}/getById?id=${logisticsId}`);
+                const token = localStorage.getItem('token');
+                const response = await fetch(`${API_BASE_URL}/getById?id=${logisticsId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
                 const result = await response.json();
                 
                 if (result.code === '0') {
@@ -1316,10 +1363,12 @@
             };
             
             try {
+                const token = localStorage.getItem('token');
                 const response = await fetch(`${API_BASE_URL}/add`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
                     },
                     body: JSON.stringify(newShipment)
                 });
@@ -1390,10 +1439,12 @@
             };
             
             try {
+                const token = localStorage.getItem('token');
                 const response = await fetch(`${API_BASE_URL}/update`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
                     },
                     body: JSON.stringify(updateData)
                 });
@@ -1424,8 +1475,12 @@
                 return;
             }
             
+            const token = localStorage.getItem('token');
             fetch(`${API_BASE_URL}/delete?id=${id}`, {
-                method: 'DELETE'
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
             })
             .then(response => response.json())
             .then(result => {

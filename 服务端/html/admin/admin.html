@@ -745,7 +745,7 @@
                 <div class="modal-body">
                     <form id="addAdminForm">
                         <div class="row">
-                            <div class="col-md-6">
+                            <div class="col-md-12">
                                 <div class="mb-3">
                                     <label for="adminAccount" class="form-label">
                                         <i class="bi bi-person-badge"></i> 管理员账号
@@ -754,7 +754,7 @@
                                            placeholder="请输入管理员账号" required>
                                 </div>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-12">
                                 <div class="mb-3">
                                     <label for="adminPassword" class="form-label">
                                         <i class="bi bi-lock"></i> 登录密码
@@ -763,28 +763,13 @@
                                            placeholder="请输入登录密码" required>
                                 </div>
                             </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6">
+                            <div class="col-md-12">
                                 <div class="mb-3">
                                     <label for="confirmPassword" class="form-label">
                                         <i class="bi bi-lock-fill"></i> 确认密码
                                     </label>
                                     <input type="password" class="form-control" id="confirmPassword" 
                                            placeholder="请再次输入密码" required>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="adminRole" class="form-label">
-                                        <i class="bi bi-star"></i> 管理员角色
-                                    </label>
-                                    <select class="form-control" id="adminRole" required>
-                                        <option value="">请选择角色</option>
-                                        <option value="super">超级管理员</option>
-                                        <option value="admin">普通管理员</option>
-                                        <option value="operator">操作员</option>
-                                    </select>
                                 </div>
                             </div>
                         </div>
@@ -862,9 +847,31 @@
         
         // 初始化页面
         document.addEventListener('DOMContentLoaded', function() {
-            // 修改这里，调用loadAdminList函数以显示模拟数据
-            loadAdminList();
+            // 检查登录状态
+            checkLoginStatus();
+            // 调用refreshAdminList函数以加载后端数据
+            refreshAdminList();
         });
+        
+        // 检查登录状态
+        function checkLoginStatus() {
+            const token = localStorage.getItem('token');
+            const userType = localStorage.getItem('userType');
+            
+            // 如果没有token或用户类型不是admin，跳转到登录页面
+            if (!token || userType !== 'admin') {
+                window.location.href = '../login.html';
+                return false;
+            }
+            
+            // 显示当前登录的管理员账号
+            const account = localStorage.getItem('account');
+            if (account) {
+                document.getElementById('currentUsername').textContent = account;
+            }
+            
+            return true;
+        }
         
         // 显示/隐藏加载指示器
         function showLoading(show) {
@@ -899,25 +906,42 @@
         async function refreshAdminList() {
             showLoading(true);
             try {
-                const response = await fetch('/admin/list');
+                const response = await fetch('http://localhost:8080/admin/list', {
+                headers: {
+                    'token': localStorage.getItem('token')
+                }
+            });
                 const result = await response.json();
                 
-                if (result.code === 0) {
-                    displayAdminList(result.data);
-                    updateAdminCount(result.data.length);
+                // 增强的状态码检查，同时考虑字符串和数字类型的状态码
+                const success = result.code === '0' || result.code === 0;
+                
+                if (success) {
+                    // 安全地处理数据
+                    try {
+                        const admins = Array.isArray(result.data) ? result.data : [];
+                        displayAdminList(admins);
+                        updateAdminCount(admins.length);
+                    } catch (dataError) {
+                        console.error('数据处理错误:', dataError);
+                        // showMessage('数据处理错误，请刷新页面重试', 'error');
+                    }
                 } else {
-                    showMessage('获取管理员列表失败: ' + result.message, 'error');
+                    showMessage('获取管理员列表失败: ' + (result.message || '未知错误'), 'error');
                 }
             } catch (error) {
                 console.error('Error:', error);
-                showMessage('网络错误，请检查后端服务', 'error');
+                showMessage('加载失败，请检查网络连接', 'error');
             } finally {
                 showLoading(false);
             }
         }
         
-        // 显示管理员列表
+        // 显示管理员列表 - 已注释模拟数据，现在直接使用refreshAdminList获取后端数据
         async function loadAdminList(page = 1) {
+            // 直接调用refreshAdminList获取实际数据
+            await refreshAdminList();
+            /* 原来的模拟数据已注释
             try {
                 // 修改这里，使用已有的showLoading函数
                 showLoading(true);
@@ -939,33 +963,11 @@
                 
                 allAdmins = mockData.data || [];
                 totalPages = Math.ceil(allAdmins.length / pageSize);
-                // 修改这里，调用已存在的displayAdminList函数而不是不存在的displayAdmins函数
                 displayAdminList(allAdmins);
-                // 移除不必要的分页渲染，因为当前页面没有分页控件
-                // renderPagination();
                 updateAdminCount(allAdmins.length);
-                
-                /* 注释掉实际API调用
-                const response = await fetch(`${API_BASE_URL}/list`);
-                const result = await response.json();
-                
-                if (result.code === '0') {
-                    allAdmins = result.data || [];
-                    totalPages = Math.ceil(allAdmins.length / pageSize);
-                    displayAdmins();
-                    renderPagination();
-                    updateAdminCount();
-                } else {
-                    showMessage('加载管理员列表失败: ' + (result.message || '未知错误'), 'error');
-                }
-                */
-            } catch (error) {
-                console.error('加载管理员列表失败:', error);
-                showMessage('加载管理员列表失败，请检查网络连接', 'error');
-            } finally {
-                // 修改这里，使用已有的showLoading函数
-                showLoading(false);
-            }
+            */
+            // 错误处理已移至refreshAdminList函数中
+            
         }
         
         // 修改displayAdminList函数，使其与表格结构匹配
@@ -1015,7 +1017,6 @@
             const account = document.getElementById('adminAccount').value.trim();
             const password = document.getElementById('adminPassword').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
-            const role = document.getElementById('adminRole').value;
             
             // 表单验证
             if (!account) {
@@ -1033,17 +1034,12 @@
                 return;
             }
             
-            if (!role) {
-                showMessage('请选择管理员角色', 'error');
-                return;
-            }
-            
             try {
-                const response = await fetch('/admin/add', {
+                const response = await fetch('http://localhost:8080/admin/add', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        'token': localStorage.getItem('token')
                     },
                     body: JSON.stringify({
                         account: account,
@@ -1053,7 +1049,10 @@
                 
                 const result = await response.json();
                 
-                if (result.code === 0) {
+                // 增强的状态码检查，同时考虑字符串和数字类型的状态码
+                const success = result.code === '0' || result.code === 0;
+                
+                if (success) {
                     showMessage('管理员添加成功！', 'success');
                     // 关闭模态框
                     const modal = bootstrap.Modal.getInstance(document.getElementById('addAdminModal'));
@@ -1103,11 +1102,11 @@
             }
             
             try {
-                const response = await fetch('/admin/updatePassword', {
+                const response = await fetch('http://localhost:8080/admin/updatePassword', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        'token': localStorage.getItem('token')
                     },
                     body: JSON.stringify({
                         account: account,
@@ -1117,7 +1116,10 @@
                 
                 const result = await response.json();
                 
-                if (result.code === 0) {
+                // 增强的状态码检查，同时考虑字符串和数字类型的状态码
+                const success = result.code === '0' || result.code === 0;
+                
+                if (success) {
                     showMessage('密码修改成功！', 'success');
                     // 关闭模态框
                     const modal = bootstrap.Modal.getInstance(document.getElementById('editPasswordModal'));
@@ -1125,11 +1127,11 @@
                     // 清空表单
                     document.getElementById('editPasswordForm').reset();
                 } else {
-                    showMessage('修改密码失败: ' + result.message, 'error');
+                    showMessage('修改密码失败: ' + (result.message || '未知错误'), 'error');
                 }
             } catch (error) {
                 console.error('Error:', error);
-                showMessage('网络错误，请检查后端服务', 'error');
+                showMessage('操作失败，请检查网络连接', 'error');
             }
         }
         
@@ -1152,39 +1154,7 @@
             // 重定向到登录页面
             window.location.href = '../login.html';
         }
-        
-        // 检查登录状态函数
-        function checkAdminLoginStatus() {
-            // 检查localStorage中是否存在登录信息
-            const userId = localStorage.getItem('userId');
-            const token = localStorage.getItem('token');
-            const currentLoginType = localStorage.getItem('currentLoginType');
-            
-            // 如果没有登录信息或登录类型不是admin，重定向到登录页面
-            if (!userId || !token || currentLoginType !== 'admin') {
-                alert('请先登录管理员账号');
-                window.location.href = '../login.html';
-                return false;
-            }
-            return true;
-        }
-        
-        // 页面加载时检查登录状态并获取用户名
-        window.addEventListener('load', function() {
-            // 先检查登录状态
-            if (!checkAdminLoginStatus()) {
-                return; // 如果未登录，直接返回
-            }
-            
-            const usernameElement = document.getElementById('currentUsername');
-            if (usernameElement) {
-                // 尝试从localStorage获取用户名
-                const userId = localStorage.getItem('userId');
-                if (userId) {
-                    usernameElement.textContent = userId;
-                }
-            }
-        });
+        ;
     </script>
 </body>
 </html>
