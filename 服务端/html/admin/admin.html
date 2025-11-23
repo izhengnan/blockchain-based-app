@@ -6,6 +6,7 @@
     <title>航运物流系统 - 管理员管理</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="../components/toast.js"></script>
     <style>
         * {
             margin: 0;
@@ -611,6 +612,197 @@
         .sidebar::-webkit-scrollbar-thumb:hover {
             background: rgba(255, 255, 255, 0.5);
         }
+        /* 自定义退出弹出框样式 */
+        .custom-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1050;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-backdrop {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(3px);
+            animation: fadeIn 0.3s ease-in-out;
+            z-index: 1050;
+        }
+        
+        .modal-container {
+            position: relative;
+            z-index: 1060;
+            background: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 450px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            animation: slideIn 0.3s ease-out;
+            overflow: hidden;
+            border: none;
+        }
+        
+        .success-container {
+            text-align: center;
+            padding: 30px;
+            max-width: 350px;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 25px;
+            border-bottom: none;
+            border-radius: 12px 12px 0 0;
+            background-color: #f8f9fa;
+        }
+        
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1f2937;
+        }
+        
+        .modal-close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #9ca3af;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+        
+        .modal-close-btn:hover {
+            background-color: #f3f4f6;
+            color: #4b5563;
+        }
+        
+        .custom-modal .modal-body {
+            padding: 25px;
+            text-align: center;
+            background-color: white;
+        }
+        
+        .logout-icon {
+            margin-bottom: 15px;
+        }
+        
+        .logout-icon i {
+            font-size: 3rem;
+            color: #3b82f6;
+        }
+        
+        .logout-message {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+        
+        .logout-note {
+            font-size: 0.9rem;
+            color: #6b7280;
+            margin-bottom: 0;
+        }
+        
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            padding: 15px 25px;
+            border-top: 1px solid #e5e7eb;
+            background-color: #f9fafb;
+        }
+        
+        .modal-footer .btn {
+            padding: 8px 20px;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn-secondary {
+            background-color: #f3f4f6;
+            color: #4b5563;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #e5e7eb;
+        }
+        
+        .btn-primary {
+            background-color: #3b82f6;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2563eb;
+        }
+        
+        /* 成功提示样式 */
+        .success-icon {
+            margin-bottom: 20px;
+        }
+        
+        .success-icon i {
+            font-size: 4rem;
+            color: #10b981;
+        }
+        
+        .success-modal h3 {
+            margin: 0 0 10px 0;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1f2937;
+        }
+        
+        .success-modal p {
+            color: #6b7280;
+            margin-bottom: 15px;
+        }
+        
+        .countdown {
+            color: #3b82f6;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        
+        /* 动画效果 */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
     </style>
 </head>
 <body>
@@ -847,10 +1039,11 @@
         
         // 初始化页面
         document.addEventListener('DOMContentLoaded', function() {
-            // 检查登录状态
-            checkLoginStatus();
-            // 调用refreshAdminList函数以加载后端数据
-            refreshAdminList();
+            // 检查登录状态，只有通过验证后才加载数据
+            if (checkLoginStatus()) {
+                // 调用refreshAdminList函数以加载后端数据
+                refreshAdminList();
+            }
         });
         
         // 检查登录状态
@@ -858,9 +1051,9 @@
             const token = localStorage.getItem('token');
             const userType = localStorage.getItem('userType');
             
-            // 如果没有token或用户类型不是admin，跳转到登录页面
+            // 如果没有token或用户类型不是admin，显示气泡提示并跳转到登录页面
             if (!token || userType !== 'admin') {
-                window.location.href = '../login.html';
+                showLoginExpiredToast();
                 return false;
             }
             
@@ -1141,20 +1334,98 @@
             sidebar.classList.toggle('show');
         }
         
-        // 退出登录函数
+        // 退出登录函数 - 显示确认弹窗
         function logout() {
-            // 清除令牌和用户信息
+            document.getElementById('logoutModal').style.display = 'flex';
+        }
+        
+        // 关闭退出登录模态框
+        function closeLogoutModal() {
+            document.getElementById('logoutModal').style.display = 'none';
+        }
+        
+        // 确认退出登录
+        function confirmLogout() {
+            // 清除localStorage中的登录信息
             localStorage.removeItem('currentLoginType');
             localStorage.removeItem('userId');
             localStorage.removeItem('token');
+            localStorage.removeItem('loginInfo');
             
-            // 显示退出提示
-            alert('退出成功，即将返回登录页面');
+            // 关闭确认模态框
+            closeLogoutModal();
             
-            // 重定向到登录页面
+            // 显示成功模态框
+            showSuccessModal();
+        }
+        
+        // 显示成功提示模态框
+        function showSuccessModal() {
+            const successModal = document.getElementById('successModal');
+            successModal.style.display = 'flex';
+            
+            // 设置倒计时跳转
+            let seconds = 3;
+            const countdownEl = document.getElementById('redirectCountdown');
+            
+            redirectTimer = setInterval(() => {
+                seconds--;
+                countdownEl.textContent = `${seconds}秒后自动跳转...`;
+                
+                if (seconds <= 0) {
+                    clearInterval(redirectTimer);
+                    window.location.href = '../login.html';
+                }
+            }, 1000);
+        }
+        
+        // 关闭成功提示模态框
+        function closeSuccessModal() {
+            clearInterval(redirectTimer);
+            document.getElementById('successModal').style.display = 'none';
             window.location.href = '../login.html';
         }
-        ;
+        
+        // 全局变量用于存储倒计时计时器
+        let redirectTimer;
     </script>
+    
+    <!-- 自定义退出登录模态框 -->
+    <div id="logoutModal" class="custom-modal" style="display: none;">
+        <div class="modal-backdrop" onclick="closeLogoutModal()"></div>
+        <div class="modal-container">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-box-arrow-right"></i>
+                    退出登录确认
+                </h5>
+                <button type="button" class="btn-close" onclick="closeLogoutModal()"></button>
+            </div>
+            <div class="modal-body">
+                <div class="logout-icon">
+                    <i class="bi bi-box-arrow-right"></i>
+                </div>
+                <p class="logout-message">确定要退出登录吗？</p>
+                <p class="logout-note">退出后需要重新登录才能使用系统功能</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeLogoutModal()">取消</button>
+                <button class="btn btn-primary" onclick="confirmLogout()">确定退出</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 自定义成功提示模态框 -->
+    <div id="successModal" class="custom-modal success-modal" style="display: none;">
+        <div class="modal-backdrop" onclick="closeSuccessModal()"></div>
+        <div class="modal-container success-container">
+            <div class="success-icon">
+                <i class="bi bi-check-circle"></i>
+            </div>
+            <h3>退出成功</h3>
+            <p>您已成功退出登录</p>
+            <div class="countdown" id="redirectCountdown">3秒后自动跳转...</div>
+        </div>
+    </div>
 </body>
 </html>

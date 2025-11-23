@@ -6,6 +6,7 @@
     <title>航运物流系统 - 承运商管理</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="../components/toast.js"></script>
     <style>
         * {
             margin: 0;
@@ -784,6 +785,170 @@
             font-size: 0.95rem;
             margin: 0;
         }
+    /* 自定义退出模态框样式 */
+    .custom-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1050;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .modal-backdrop {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(3px);
+        animation: fadeIn 0.3s ease-in-out;
+        z-index: 1050;
+    }
+    
+    .modal-container {
+        position: relative;
+        z-index: 1060;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+        width: 90%;
+        max-width: 400px;
+        overflow: hidden;
+        animation: modalFadeIn 0.3s ease-out;
+        border: none;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    @keyframes modalFadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 1.5rem;
+        border-bottom: none;
+        background-color: #f8f9fa;
+        border-radius: 12px 12px 0 0;
+    }
+    
+    .modal-header h3 {
+        margin: 0;
+        color: #495057;
+        font-size: 1.1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .modal-header h3 i {
+        color: #dc3545;
+    }
+    
+    .modal-close-btn {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        color: #6c757d;
+        cursor: pointer;
+        padding: 0;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: all 0.2s;
+    }
+    
+    .modal-close-btn:hover {
+        background-color: #e9ecef;
+        color: #495057;
+    }
+    
+    .modal-body {
+        padding: 1.5rem;
+        background-color: white;
+        text-align: center;
+    }
+    
+    .logout-icon {
+        font-size: 3rem;
+        color: #dc3545;
+        margin-bottom: 1rem;
+    }
+    
+    .logout-message {
+        font-size: 1.1rem;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        color: #495057;
+    }
+    
+    .logout-note {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-bottom: 0;
+    }
+    
+    .modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+        padding: 1rem 1.5rem;
+        border-top: 1px solid #dee2e6;
+    }
+    
+    /* 成功提示模态框样式 */
+    .success-modal {
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .success-container {
+        text-align: center;
+        padding: 2rem;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    }
+    
+    .success-icon {
+        font-size: 4rem;
+        color: #28a745;
+        margin-bottom: 1rem;
+    }
+    
+    .success-container h3 {
+        margin: 0 0 0.5rem 0;
+        color: #495057;
+    }
+    
+    .success-container p {
+        margin-bottom: 1rem;
+        color: #6c757d;
+    }
+    
+    .countdown {
+        font-size: 0.9rem;
+        color: #28a745;
+        font-weight: 500;
+    }
     </style>
 </head>
 <body>
@@ -1017,6 +1182,68 @@
             </div>
         </div>
     </div>
+        <!-- 自定义退出登录模态框 -->
+    <div id="logoutModal" class="custom-modal" style="display: none;">
+        <div class="modal-backdrop" onclick="closeLogoutModal()"></div>
+        <div class="modal-container">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-box-arrow-right"></i>
+                    退出登录确认
+                </h5>
+                <button type="button" class="btn-close" onclick="closeLogoutModal()"></button>
+            </div>
+            <div class="modal-body">
+                <div class="logout-icon">
+                    <i class="bi bi-box-arrow-right"></i>
+                </div>
+                <p class="logout-message">确定要退出登录吗？</p>
+                <p class="logout-note">退出后需要重新登录才能使用系统功能</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeLogoutModal()">取消</button>
+                <button class="btn btn-primary" onclick="confirmLogout()">确定退出</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 自定义删除确认模态框 -->
+    <div id="deleteConfirmModal" class="custom-modal" style="display: none;">
+        <div class="modal-backdrop" onclick="closeDeleteConfirmModal()"></div>
+        <div class="modal-container">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-trash3"></i>
+                    删除确认
+                </h5>
+                <button type="button" class="btn-close" onclick="closeDeleteConfirmModal()"></button>
+            </div>
+            <div class="modal-body">
+                <div class="logout-icon" style="color: #dc3545;">
+                    <i class="bi bi-trash3"></i>
+                </div>
+                <p class="logout-message" id="deleteMessage">确定要删除吗？此操作不可恢复！</p>
+                <p class="logout-note">删除后相关数据将被永久移除</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeDeleteConfirmModal()">取消</button>
+                <button class="btn btn-danger" onclick="confirmDelete()">确定删除</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 自定义成功提示模态框 -->
+    <div id="successModal" class="custom-modal success-modal" style="display: none;">
+        <div class="modal-backdrop" onclick="closeSuccessModal()"></div>
+        <div class="modal-container success-container">
+            <div class="success-icon">
+                <i class="bi bi-check-circle"></i>
+            </div>
+            <h3>退出成功</h3>
+            <p>您已成功退出登录</p>
+            <div class="countdown" id="redirectCountdown">3秒后自动跳转...</div>
+        </div>
+    </div>
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
@@ -1026,12 +1253,33 @@
         let totalPages = 1;
         let allCarriers = [];
         let isSearching = false;
+        let currentDeleteId = null;
+        let currentDeleteType = null;
         
         // API 基础URL
         const API_BASE_URL = 'http://localhost:8080/carrier';
         
+        // 检查登录状态函数
+        function checkLoginStatus() {
+            const token = localStorage.getItem('token');
+            const userType = localStorage.getItem('userType');
+            
+            // 如果没有token或用户类型不是admin，显示气泡提示
+            if (!token || userType !== 'admin') {
+                showLoginExpiredToast();
+                return false;
+            }
+            
+            return true;
+        }
+        
         // 初始化页面
         document.addEventListener('DOMContentLoaded', function() {
+            // 先检查登录状态
+            if (!checkLoginStatus()) {
+                return;
+            }
+            
             // 显示当前登录的管理员账号
             const account = localStorage.getItem('account');
             if (account) {
@@ -1360,36 +1608,109 @@
         
         // 删除承运商
         function deleteCarrier(id, name) {
-            if (!confirm(`确定要删除承运商 "${name}" 吗？此操作不可恢复！`)) {
+            currentDeleteId = id;
+            currentDeleteType = 'carrier';
+            document.getElementById('deleteMessage').textContent = `确定要删除承运商 "${name}" 吗？此操作不可恢复！`;
+            document.getElementById('deleteConfirmModal').style.display = 'flex';
+        }
+        
+        // 关闭删除确认模态框
+        function closeDeleteConfirmModal() {
+            document.getElementById('deleteConfirmModal').style.display = 'none';
+            currentDeleteId = null;
+            currentDeleteType = null;
+        }
+        
+        // 确认删除操作
+        function confirmDelete() {
+            if (!currentDeleteId || !currentDeleteType) {
                 return;
             }
             
-            fetch(`${API_BASE_URL}/delete?id=${id}`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
-            })
-            .then(response => response.json())
-            .then(result => {
-                if (result.code === '0') {
-                    showMessage('承运商删除成功', 'success');
-                    loadCarrierList(currentPage);
-                } else {
-                    showMessage('删除失败: ' + (result.message || '未知错误'), 'error');
-                }
-            })
-            .catch(error => {
-                console.error('删除承运商失败:', error);
-                showMessage('删除失败，请检查网络连接', 'error');
-            });
-        }
-    // 退出登录
-        function logout() {
-            if (confirm('确定要退出登录吗？')) {
-                window.location.href = '/login.html';
+            // 关闭模态框
+            document.getElementById('deleteConfirmModal').style.display = 'none';
+            
+            // 执行删除操作
+            if (currentDeleteType === 'carrier') {
+                fetch(`${API_BASE_URL}/delete?id=${currentDeleteId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.code === '0') {
+                        showMessage('承运商删除成功', 'success');
+                        loadCarrierList(currentPage);
+                    } else {
+                        showMessage('删除失败: ' + (result.message || '未知错误'), 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('删除承运商失败:', error);
+                    showMessage('删除失败，请检查网络连接', 'error');
+                });
             }
+            
+            // 重置变量
+            currentDeleteId = null;
+            currentDeleteType = null;
         }
-        </script>
-    </body>
+    // 退出登录函数 - 显示确认弹窗
+    function logout() {
+        document.getElementById('logoutModal').style.display = 'flex';
+    }
+    
+    // 关闭退出登录模态框
+    function closeLogoutModal() {
+        document.getElementById('logoutModal').style.display = 'none';
+    }
+    
+    // 确认退出登录
+    function confirmLogout() {
+        // 清除localStorage中的登录信息
+        localStorage.removeItem('currentLoginType');
+        localStorage.removeItem('userId');
+        localStorage.removeItem('token');
+        localStorage.removeItem('loginInfo');
+        
+        // 关闭确认模态框
+        closeLogoutModal();
+        
+        // 显示成功模态框
+        showSuccessModal();
+    }
+    
+    // 显示成功提示模态框
+    function showSuccessModal() {
+        const successModal = document.getElementById('successModal');
+        successModal.style.display = 'flex';
+        
+        // 设置倒计时跳转
+        let seconds = 3;
+        const countdownEl = document.getElementById('redirectCountdown');
+        
+        redirectTimer = setInterval(() => {
+            seconds--;
+            countdownEl.textContent = `${seconds}秒后自动跳转...`;
+            
+            if (seconds <= 0) {
+                clearInterval(redirectTimer);
+                window.location.href = '../login.html';
+            }
+        }, 1000);
+    }
+    
+    // 关闭成功提示模态框
+    function closeSuccessModal() {
+        clearInterval(redirectTimer);
+        document.getElementById('successModal').style.display = 'none';
+        window.location.href = '../login.html';
+    }
+    
+    // 全局变量用于存储倒计时计时器
+    let redirectTimer;
+    </script>
+</body>
 </html>
